@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>isHiddenInViewMode Manager</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <h1>isHiddenInViewMode Manager</h1>
+            <p class="subtitle">Manage filter visibility in Power BI PBIR reports</p>
+        </header>
+
+        <div id="browser-warning" class="warning hidden">
+            This application requires Chrome, Edge, or Opera browser with File System Access API support.
+        </div>
+
+        <section class="folder-section">
+            <button id="select-folder-btn" class="btn btn-primary">Select Folder</button>
+            <span id="folder-path" class="folder-path">No folder selected</span>
+        </section>
+
+        <section id="summary-section" class="summary-section hidden">
+            <div class="summary-item">
+                <span class="summary-value" id="total-visuals">0</span>
+                <span class="summary-label">Visuals</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-value" id="total-filters">0</span>
+                <span class="summary-label">Filters</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-value" id="hidden-filters">0</span>
+                <span class="summary-label">Hidden</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-value" id="visible-filters">0</span>
+                <span class="summary-label">Visible</span>
+            </div>
+            <div class="summary-item">
+                <span class="summary-value" id="default-filters">0</span>
+                <span class="summary-label">Default</span>
+            </div>
+        </section>
+
+        <section id="actions-section" class="actions-section hidden">
+            <div class="actions-row">
+                <div class="selection-actions">
+                    <button id="select-all-btn" class="btn btn-secondary">Select All</button>
+                    <button id="select-none-btn" class="btn btn-secondary">Select None</button>
+                </div>
+                <div class="bulk-actions">
+                    <button id="set-true-btn" class="btn btn-action" disabled>Set Hidden (true)</button>
+                    <button id="set-false-btn" class="btn btn-action" disabled>Set Visible (false)</button>
+                    <button id="remove-prop-btn" class="btn btn-action" disabled>Remove Property</button>
+                </div>
+                <div class="filter-actions">
+                    <label for="status-filter">Filter by status:</label>
+                    <select id="status-filter">
+                        <option value="all">All</option>
+                        <option value="hidden">Hidden (true)</option>
+                        <option value="visible">Visible (false)</option>
+                        <option value="default">Default (not set)</option>
+                        <option value="mixed">Mixed</option>
+                        <option value="no-filters">No Filters</option>
+                    </select>
+                </div>
+            </div>
+        </section>
+
+        <section id="table-section" class="table-section hidden">
+            <table class="visuals-table">
+                <thead>
+                    <tr>
+                        <th class="col-checkbox"><input type="checkbox" id="header-checkbox"></th>
+                        <th class="col-expand"></th>
+                        <th class="col-path">Path</th>
+                        <th class="col-file">File</th>
+                        <th class="col-type">Type</th>
+                        <th class="col-filters">Filters</th>
+                        <th class="col-status">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="visuals-tbody">
+                </tbody>
+            </table>
+        </section>
+
+        <section id="save-section" class="save-section hidden">
+            <div class="save-row">
+                <button id="save-btn" class="btn btn-primary" disabled>Save Changes</button>
+                <span id="modified-status" class="modified-status">No changes</span>
+            </div>
+        </section>
+
+        <section id="history-section" class="history-section hidden">
+            <div class="history-row">
+                <button id="undo-btn" class="btn btn-secondary" disabled>Undo</button>
+                <button id="undo-all-btn" class="btn btn-secondary" disabled>Undo All</button>
+                <button id="export-csv-btn" class="btn btn-secondary">Export CSV</button>
+                <button id="export-json-btn" class="btn btn-secondary">Export JSON</button>
+                <span id="history-status" class="history-status">History: 0 changes</span>
+            </div>
+        </section>
+
+        <section id="empty-state" class="empty-state hidden">
+            <p>No visual.json files found in the selected folder.</p>
+            <p>Select a PBIR report folder containing visual.json files (e.g., pages or definition folder).</p>
+        </section>
+    </div>
+
+    <div id="toast" class="toast hidden"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
