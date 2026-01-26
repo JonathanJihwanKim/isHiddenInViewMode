@@ -98,8 +98,11 @@ class IsHiddenInViewModeManager {
         this.pageDisplayNames.clear();
 
         try {
-            // Recursively scan all JSON files under the selected folder
-            await this.scanFolderRecursively(this.folderHandle, '');
+            // Pass 1: Collect all page display names first
+            await this.collectPageDisplayNames(this.folderHandle, '');
+
+            // Pass 2: Process visual.json files (display names now available)
+            await this.scanForVisuals(this.folderHandle, '');
 
             if (this.visuals.length === 0) {
                 this.showEmptyState();
@@ -113,18 +116,25 @@ class IsHiddenInViewModeManager {
         }
     }
 
-    async scanFolderRecursively(dirHandle, currentPath) {
+    async collectPageDisplayNames(dirHandle, currentPath) {
         for await (const entry of dirHandle.values()) {
             const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
 
             if (entry.kind === 'directory') {
-                // Recursively scan subdirectories
-                await this.scanFolderRecursively(entry, entryPath);
+                await this.collectPageDisplayNames(entry, entryPath);
             } else if (entry.kind === 'file' && entry.name === 'page.json') {
-                // Read page display name
                 await this.readPageDisplayName(entry, currentPath);
+            }
+        }
+    }
+
+    async scanForVisuals(dirHandle, currentPath) {
+        for await (const entry of dirHandle.values()) {
+            const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+
+            if (entry.kind === 'directory') {
+                await this.scanForVisuals(entry, entryPath);
             } else if (entry.kind === 'file' && entry.name === 'visual.json') {
-                // Only process visual.json files
                 await this.processJsonFile(entry, entryPath, currentPath);
             }
         }
@@ -231,7 +241,16 @@ class IsHiddenInViewModeManager {
     }
 
     getVisualName(json) {
-        // Try to get a display name
+        // Check visual.visualContainerObjects for title (nested inside visual!)
+        if (json.visual?.visualContainerObjects?.title) {
+            const titleProps = json.visual.visualContainerObjects.title[0]?.properties;
+            if (titleProps?.text?.expr?.Literal?.Value) {
+                // Remove surrounding quotes from the value
+                return titleProps.text.expr.Literal.Value.replace(/^'|'$/g, '');
+            }
+        }
+
+        // Existing fallbacks
         if (json.name) {
             return json.name;
         }
@@ -378,7 +397,7 @@ class IsHiddenInViewModeManager {
                         ''}
                 </td>
                 <td class="col-page" title="${this.escapeHtml(visual.path)}">${this.escapeHtml(visual.pageDisplayName)}</td>
-                <td class="col-visual">${this.escapeHtml(visual.visualId)}</td>
+                <td class="col-visual" title="${this.escapeHtml(visual.visualId)}">${this.escapeHtml(visual.visualName || visual.visualId)}</td>
                 <td class="col-type">${this.escapeHtml(visual.visualType)}</td>
                 <td class="col-filters">${visual.filters.length}</td>
                 <td class="col-status">
@@ -772,6 +791,7 @@ class IsHiddenInViewModeManager {
             path: v.path,
             pageDisplayName: v.pageDisplayName,
             visualId: v.visualId,
+            visualName: v.visualName || v.visualId,
             visualType: v.visualType,
             filterCount: v.filters.length,
             status: this.getVisualStatus(v),
@@ -786,13 +806,13 @@ class IsHiddenInViewModeManager {
         let content, filename, type;
 
         if (format === 'csv') {
-            const rows = [['Page', 'Visual ID', 'Visual Type', 'Filter Count', 'Status', 'Filter Name', 'Filter Field', 'Filter Type', 'isHiddenInViewMode', 'Path']];
+            const rows = [['Page', 'Visual', 'Visual Type', 'Filter Count', 'Status', 'Filter Name', 'Filter Field', 'Filter Type', 'isHiddenInViewMode', 'Path']];
 
             for (const visual of data) {
                 if (visual.filters.length === 0) {
                     rows.push([
                         visual.pageDisplayName,
-                        visual.visualId,
+                        visual.visualName,
                         visual.visualType,
                         visual.filterCount,
                         visual.status,
@@ -803,7 +823,7 @@ class IsHiddenInViewModeManager {
                     for (const filter of visual.filters) {
                         rows.push([
                             visual.pageDisplayName,
-                            visual.visualId,
+                            visual.visualName,
                             visual.visualType,
                             visual.filterCount,
                             visual.status,
