@@ -7,6 +7,7 @@ class IsHiddenInViewModeManager {
         this.history = [];
         this.selectedVisuals = new Set();
         this.currentFilter = 'all';
+        this.pageDisplayNames = new Map(); // pageId -> displayName
 
         this.initElements();
         this.checkBrowserSupport();
@@ -94,6 +95,7 @@ class IsHiddenInViewModeManager {
         this.visuals = [];
         this.history = [];
         this.selectedVisuals.clear();
+        this.pageDisplayNames.clear();
 
         try {
             // Recursively scan all JSON files under the selected folder
@@ -118,10 +120,30 @@ class IsHiddenInViewModeManager {
             if (entry.kind === 'directory') {
                 // Recursively scan subdirectories
                 await this.scanFolderRecursively(entry, entryPath);
+            } else if (entry.kind === 'file' && entry.name === 'page.json') {
+                // Read page display name
+                await this.readPageDisplayName(entry, currentPath);
             } else if (entry.kind === 'file' && entry.name === 'visual.json') {
                 // Only process visual.json files
                 await this.processJsonFile(entry, entryPath, currentPath);
             }
+        }
+    }
+
+    async readPageDisplayName(fileHandle, folderPath) {
+        try {
+            const file = await fileHandle.getFile();
+            const content = await file.text();
+            const json = JSON.parse(content);
+
+            if (json.displayName) {
+                // Extract pageId from path (last folder name)
+                const pathParts = folderPath.split('/');
+                const pageId = pathParts[pathParts.length - 1];
+                this.pageDisplayNames.set(pageId, json.displayName);
+            }
+        } catch (err) {
+            console.log(`Could not read page.json at ${folderPath}: ${err.message}`);
         }
     }
 
@@ -169,10 +191,14 @@ class IsHiddenInViewModeManager {
                 visualId = fileHandle.name.replace('.json', '');
             }
 
+            // Look up the display name for this page
+            const pageDisplayName = this.pageDisplayNames.get(pageName) || pageName || 'Unknown';
+
             const visual = {
                 path: filePath,
                 fileName: fileHandle.name,
                 pageName: pageName || 'Unknown',
+                pageDisplayName: pageDisplayName,
                 visualId: visualId,
                 visualType: this.getVisualType(json),
                 visualName: this.getVisualName(json),
@@ -342,9 +368,6 @@ class IsHiddenInViewModeManager {
             row.className = isSelected ? 'selected' : '';
             row.dataset.path = visual.path;
 
-            // Get folder path (without filename)
-            const folderPath = visual.path.split('/').slice(0, -1).join('/') || '.';
-
             row.innerHTML = `
                 <td class="col-checkbox">
                     <input type="checkbox" class="visual-checkbox" data-path="${visual.path}" ${isSelected ? 'checked' : ''}>
@@ -354,8 +377,8 @@ class IsHiddenInViewModeManager {
                         `<button class="expand-btn" data-path="${visual.path}">&#9654;</button>` :
                         ''}
                 </td>
-                <td class="col-path" title="${this.escapeHtml(visual.path)}">${this.escapeHtml(folderPath)}</td>
-                <td class="col-file">${this.escapeHtml(visual.fileName || 'visual.json')}</td>
+                <td class="col-page" title="${this.escapeHtml(visual.path)}">${this.escapeHtml(visual.pageDisplayName)}</td>
+                <td class="col-visual">${this.escapeHtml(visual.visualId)}</td>
                 <td class="col-type">${this.escapeHtml(visual.visualType)}</td>
                 <td class="col-filters">${visual.filters.length}</td>
                 <td class="col-status">
@@ -747,7 +770,8 @@ class IsHiddenInViewModeManager {
     exportReport(format) {
         const data = this.visuals.map(v => ({
             path: v.path,
-            fileName: v.fileName,
+            pageDisplayName: v.pageDisplayName,
+            visualId: v.visualId,
             visualType: v.visualType,
             filterCount: v.filters.length,
             status: this.getVisualStatus(v),
@@ -762,30 +786,32 @@ class IsHiddenInViewModeManager {
         let content, filename, type;
 
         if (format === 'csv') {
-            const rows = [['Path', 'File Name', 'Visual Type', 'Filter Count', 'Status', 'Filter Name', 'Filter Field', 'Filter Type', 'isHiddenInViewMode']];
+            const rows = [['Page', 'Visual ID', 'Visual Type', 'Filter Count', 'Status', 'Filter Name', 'Filter Field', 'Filter Type', 'isHiddenInViewMode', 'Path']];
 
             for (const visual of data) {
                 if (visual.filters.length === 0) {
                     rows.push([
-                        visual.path,
-                        visual.fileName,
+                        visual.pageDisplayName,
+                        visual.visualId,
                         visual.visualType,
                         visual.filterCount,
                         visual.status,
-                        '', '', '', ''
+                        '', '', '', '',
+                        visual.path
                     ]);
                 } else {
                     for (const filter of visual.filters) {
                         rows.push([
-                            visual.path,
-                            visual.fileName,
+                            visual.pageDisplayName,
+                            visual.visualId,
                             visual.visualType,
                             visual.filterCount,
                             visual.status,
                             filter.name,
                             filter.field,
                             filter.type,
-                            filter.isHiddenInViewMode === undefined ? '' : filter.isHiddenInViewMode
+                            filter.isHiddenInViewMode === undefined ? '' : filter.isHiddenInViewMode,
+                            visual.path
                         ]);
                     }
                 }
