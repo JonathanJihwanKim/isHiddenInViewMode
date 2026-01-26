@@ -51,6 +51,11 @@ class IsHiddenInViewModeManager {
         this.hiddenFilters = document.getElementById('hidden-filters');
         this.visibleFilters = document.getElementById('visible-filters');
         this.defaultFilters = document.getElementById('default-filters');
+
+        // Modal elements
+        this.docModal = document.getElementById('doc-modal');
+        this.manualBtn = document.getElementById('manual-btn');
+        this.closeModalBtn = document.getElementById('close-modal-btn');
     }
 
     checkBrowserSupport() {
@@ -76,6 +81,13 @@ class IsHiddenInViewModeManager {
         this.statusFilter.addEventListener('change', (e) => {
             this.currentFilter = e.target.value;
             this.renderTable();
+        });
+
+        // Modal events
+        this.manualBtn.addEventListener('click', () => this.openDocModal());
+        this.closeModalBtn.addEventListener('click', () => this.closeDocModal());
+        this.docModal.addEventListener('click', (e) => {
+            if (e.target === this.docModal) this.closeDocModal();
         });
     }
 
@@ -872,6 +884,14 @@ class IsHiddenInViewModeManager {
         setTimeout(() => {
             toast.classList.add('hidden');
         }, 3000);
+    }
+
+    openDocModal() {
+        this.docModal.classList.remove('hidden');
+    }
+
+    closeDocModal() {
+        this.docModal.classList.add('hidden');
     }
 }
 

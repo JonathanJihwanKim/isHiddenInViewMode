@@ -9,8 +9,19 @@
 <body>
     <div class="app-container">
         <header class="app-header">
-            <h1>isHiddenInViewMode Manager</h1>
-            <p class="subtitle">Manage filter visibility in Power BI PBIR reports</p>
+            <div class="header-left">
+                <img src="Power-BI.png" alt="Power BI" class="logo-icon">
+                <span class="logo-text">pbir</span>
+            </div>
+            <div class="header-center">
+                <h1>isHiddenInViewMode Manager</h1>
+                <p class="subtitle">Manage filter visibility in Power BI PBIR reports</p>
+            </div>
+            <div class="header-right">
+                <button id="manual-btn" class="manual-btn" title="Documentation">
+                    <img src="manual.png" alt="Manual" class="manual-icon">
+                </button>
+            </div>
         </header>
 
         <div id="browser-warning" class="warning hidden">
@@ -112,6 +123,109 @@
     </div>
 
     <div id="toast" class="toast hidden"></div>
+
+    <!-- Documentation Modal -->
+    <div id="doc-modal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Documentation</h2>
+                <button id="close-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <h3>What is isHiddenInViewMode Manager?</h3>
+                <p>This tool helps you manage filter visibility settings in Power BI reports. It allows you to control whether filters are <strong>hidden</strong> or <strong>visible</strong> when users view your report in reading mode.</p>
+                <p>The <code>isHiddenInViewMode</code> property determines if a filter pane is visible to report viewers. When set to <code>true</code>, the filter is hidden from users but still applies to the data.</p>
+
+                <h3>Requirements</h3>
+                <div class="requirement-box">
+                    <strong>Important:</strong> Your Power BI report MUST be saved in <strong>PBIR format</strong> (Power BI Enhanced Report Format) to use this tool.
+                </div>
+                <p>To enable PBIR format:</p>
+                <ol>
+                    <li>Open Power BI Desktop</li>
+                    <li>Go to <strong>File &gt; Options and settings &gt; Options</strong></li>
+                    <li>Select <strong>Preview features</strong></li>
+                    <li>Enable <strong>Power BI Project (.pbip) save option</strong></li>
+                    <li>Save your report as a <strong>.pbip</strong> file</li>
+                </ol>
+                <p><strong>Browser requirement:</strong> Chrome, Edge, or Opera (requires File System Access API)</p>
+
+                <h3>How to Use</h3>
+                <div class="step-item">
+                    <span class="step-number">1</span>
+                    <div class="step-content">
+                        <strong>Select Folder</strong><br>
+                        Click the "Select Folder" button and navigate to your PBIR report folder. Select the folder containing <code>pages</code> or <code>definition</code> directories.
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-number">2</span>
+                    <div class="step-content">
+                        <strong>Review Visuals</strong><br>
+                        The app displays all visuals with their current filter settings. Click the expand arrow to see individual filters for each visual.
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-number">3</span>
+                    <div class="step-content">
+                        <strong>Select Visuals</strong><br>
+                        Use checkboxes to select the visuals you want to modify. Use "Select All" or "Select None" for bulk selection.
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-number">4</span>
+                    <div class="step-content">
+                        <strong>Set Filter Visibility</strong><br>
+                        Click one of the action buttons:<br>
+                        &bull; <strong>Set Hidden (true)</strong> - Hide filters from viewers<br>
+                        &bull; <strong>Set Visible (false)</strong> - Show filters to viewers<br>
+                        &bull; <strong>Remove Property</strong> - Remove the setting (use default)
+                    </div>
+                </div>
+                <div class="step-item">
+                    <span class="step-number">5</span>
+                    <div class="step-content">
+                        <strong>Save Changes</strong><br>
+                        Click "Save Changes" to write your modifications back to the visual.json files. Changes are permanent once saved.
+                    </div>
+                </div>
+
+                <h3>Understanding Status</h3>
+                <div class="status-legend">
+                    <div class="status-legend-item">
+                        <span class="status-badge status-hidden">Hidden</span>
+                        <span>isHiddenInViewMode = true</span>
+                    </div>
+                    <div class="status-legend-item">
+                        <span class="status-badge status-visible">Visible</span>
+                        <span>isHiddenInViewMode = false</span>
+                    </div>
+                    <div class="status-legend-item">
+                        <span class="status-badge status-default">Default</span>
+                        <span>Property not set</span>
+                    </div>
+                    <div class="status-legend-item">
+                        <span class="status-badge status-mixed">Mixed</span>
+                        <span>Filters have different settings</span>
+                    </div>
+                    <div class="status-legend-item">
+                        <span class="status-badge status-no-filters">No Filters</span>
+                        <span>Visual has no filters</span>
+                    </div>
+                </div>
+
+                <h3>Tips</h3>
+                <div class="tip-box">
+                    <ul>
+                        <li><strong>Undo changes:</strong> Use "Undo" or "Undo All" to revert changes before saving</li>
+                        <li><strong>Export reports:</strong> Use "Export CSV" or "Export JSON" to document your filter settings</li>
+                        <li><strong>Filter by status:</strong> Use the dropdown to show only visuals with specific status</li>
+                        <li><strong>Individual filter control:</strong> Expand a visual row to modify individual filters</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
