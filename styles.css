@@ -403,6 +403,65 @@ body {
     font-style: italic;
 }
 
+/* Tab Navigation */
+.tab-navigation {
+    display: flex;
+    gap: 0;
+    margin-bottom: 20px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    padding: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 24px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    background: var(--bg-color);
+    color: var(--text-color);
+}
+
+.tab-btn.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Layer Order table - simpler layout without expand column */
+.layer-table .col-page {
+    width: 20%;
+}
+
+.layer-table .col-visual {
+    width: 30%;
+}
+
+.layer-table .col-type {
+    width: 20%;
+}
+
+.layer-table .col-status {
+    width: 20%;
+}
+
 /* Filter Details Row */
 .filter-details-row {
     background-color: #f8f9fa;

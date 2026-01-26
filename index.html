@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>isHiddenInViewMode Manager</title>
+    <title>PBIR Visual Manager</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
@@ -14,8 +14,8 @@
                 <span class="logo-text">pbir</span>
             </div>
             <div class="header-center">
-                <h1>isHiddenInViewMode Manager</h1>
-                <p class="subtitle">Manage filter visibility in Power BI PBIR reports</p>
+                <h1>PBIR Visual Manager</h1>
+                <p class="subtitle">Manage visual properties in Power BI PBIR reports</p>
             </div>
             <div class="header-right">
                 <button id="manual-btn" class="manual-btn" title="Documentation">
@@ -33,88 +33,175 @@
             <span id="folder-path" class="folder-path">No folder selected</span>
         </section>
 
-        <section id="summary-section" class="summary-section hidden">
-            <div class="summary-item">
-                <span class="summary-value" id="total-visuals">0</span>
-                <span class="summary-label">Visuals</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-value" id="total-filters">0</span>
-                <span class="summary-label">Filters</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-value" id="hidden-filters">0</span>
-                <span class="summary-label">Hidden</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-value" id="visible-filters">0</span>
-                <span class="summary-label">Visible</span>
-            </div>
-            <div class="summary-item">
-                <span class="summary-value" id="default-filters">0</span>
-                <span class="summary-label">Default</span>
-            </div>
-        </section>
+        <!-- Tab Navigation -->
+        <div id="tab-navigation" class="tab-navigation hidden">
+            <button class="tab-btn active" data-tab="filter-visibility">Filter Visibility</button>
+            <button class="tab-btn" data-tab="layer-order">Layer Order</button>
+        </div>
 
-        <section id="actions-section" class="actions-section hidden">
-            <div class="actions-row">
-                <div class="selection-actions">
-                    <button id="select-all-btn" class="btn btn-secondary">Select All</button>
-                    <button id="select-none-btn" class="btn btn-secondary">Select None</button>
+        <!-- Filter Visibility Tab -->
+        <div id="tab-filter-visibility" class="tab-content active">
+            <section id="filter-summary-section" class="summary-section hidden">
+                <div class="summary-item">
+                    <span class="summary-value" id="total-visuals">0</span>
+                    <span class="summary-label">Visuals</span>
                 </div>
-                <div class="bulk-actions">
-                    <button id="set-true-btn" class="btn btn-action" disabled>Set Hidden (true)</button>
-                    <button id="set-false-btn" class="btn btn-action" disabled>Set Visible (false)</button>
-                    <button id="remove-prop-btn" class="btn btn-action" disabled>Remove Property</button>
+                <div class="summary-item">
+                    <span class="summary-value" id="total-filters">0</span>
+                    <span class="summary-label">Filters</span>
                 </div>
-                <div class="filter-actions">
-                    <label for="status-filter">Filter by status:</label>
-                    <select id="status-filter">
-                        <option value="all">All</option>
-                        <option value="hidden">Hidden (true)</option>
-                        <option value="visible">Visible (false)</option>
-                        <option value="default">Default (not set)</option>
-                        <option value="mixed">Mixed</option>
-                        <option value="no-filters">No Filters</option>
-                    </select>
+                <div class="summary-item">
+                    <span class="summary-value" id="hidden-filters">0</span>
+                    <span class="summary-label">Hidden</span>
                 </div>
-            </div>
-        </section>
+                <div class="summary-item">
+                    <span class="summary-value" id="visible-filters">0</span>
+                    <span class="summary-label">Visible</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="default-filters">0</span>
+                    <span class="summary-label">Default</span>
+                </div>
+            </section>
 
-        <section id="table-section" class="table-section hidden">
-            <table class="visuals-table">
-                <thead>
-                    <tr>
-                        <th class="col-checkbox"><input type="checkbox" id="header-checkbox"></th>
-                        <th class="col-expand"></th>
-                        <th class="col-page">Page</th>
-                        <th class="col-visual">Visual</th>
-                        <th class="col-type">Type</th>
-                        <th class="col-filters">Filters</th>
-                        <th class="col-status">Status</th>
-                    </tr>
-                </thead>
-                <tbody id="visuals-tbody">
-                </tbody>
-            </table>
-        </section>
+            <section id="filter-actions-section" class="actions-section hidden">
+                <div class="actions-row">
+                    <div class="selection-actions">
+                        <button id="filter-select-all-btn" class="btn btn-secondary">Select All</button>
+                        <button id="filter-select-none-btn" class="btn btn-secondary">Select None</button>
+                    </div>
+                    <div class="bulk-actions">
+                        <button id="set-true-btn" class="btn btn-action" disabled>Set Hidden (true)</button>
+                        <button id="set-false-btn" class="btn btn-action" disabled>Set Visible (false)</button>
+                        <button id="filter-remove-prop-btn" class="btn btn-action" disabled>Remove Property</button>
+                    </div>
+                    <div class="filter-actions">
+                        <label for="filter-status-filter">Filter by status:</label>
+                        <select id="filter-status-filter">
+                            <option value="all">All</option>
+                            <option value="hidden">Hidden (true)</option>
+                            <option value="visible">Visible (false)</option>
+                            <option value="default">Default (not set)</option>
+                            <option value="mixed">Mixed</option>
+                            <option value="no-filters">No Filters</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
 
-        <section id="save-section" class="save-section hidden">
-            <div class="save-row">
-                <button id="save-btn" class="btn btn-primary" disabled>Save Changes</button>
-                <span id="modified-status" class="modified-status">No changes</span>
-            </div>
-        </section>
+            <section id="filter-table-section" class="table-section hidden">
+                <table class="visuals-table">
+                    <thead>
+                        <tr>
+                            <th class="col-checkbox"><input type="checkbox" id="filter-header-checkbox"></th>
+                            <th class="col-expand"></th>
+                            <th class="col-page">Page</th>
+                            <th class="col-visual">Visual</th>
+                            <th class="col-type">Type</th>
+                            <th class="col-filters">Filters</th>
+                            <th class="col-status">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="filter-visuals-tbody">
+                    </tbody>
+                </table>
+            </section>
 
-        <section id="history-section" class="history-section hidden">
-            <div class="history-row">
-                <button id="undo-btn" class="btn btn-secondary" disabled>Undo</button>
-                <button id="undo-all-btn" class="btn btn-secondary" disabled>Undo All</button>
-                <button id="export-csv-btn" class="btn btn-secondary">Export CSV</button>
-                <button id="export-json-btn" class="btn btn-secondary">Export JSON</button>
-                <span id="history-status" class="history-status">History: 0 changes</span>
-            </div>
-        </section>
+            <section id="filter-save-section" class="save-section hidden">
+                <div class="save-row">
+                    <button id="filter-save-btn" class="btn btn-primary" disabled>Save Changes</button>
+                    <span id="filter-modified-status" class="modified-status">No changes</span>
+                </div>
+            </section>
+
+            <section id="filter-history-section" class="history-section hidden">
+                <div class="history-row">
+                    <button id="filter-undo-btn" class="btn btn-secondary" disabled>Undo</button>
+                    <button id="filter-undo-all-btn" class="btn btn-secondary" disabled>Undo All</button>
+                    <button id="filter-export-csv-btn" class="btn btn-secondary">Export CSV</button>
+                    <button id="filter-export-json-btn" class="btn btn-secondary">Export JSON</button>
+                    <span id="filter-history-status" class="history-status">History: 0 changes</span>
+                </div>
+            </section>
+        </div>
+
+        <!-- Layer Order Tab -->
+        <div id="tab-layer-order" class="tab-content hidden">
+            <section id="layer-summary-section" class="summary-section hidden">
+                <div class="summary-item">
+                    <span class="summary-value" id="layer-total-visuals">0</span>
+                    <span class="summary-label">Visuals</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="layer-enabled">0</span>
+                    <span class="summary-label">Enabled</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="layer-disabled">0</span>
+                    <span class="summary-label">Disabled</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="layer-not-set">0</span>
+                    <span class="summary-label">Not Set</span>
+                </div>
+            </section>
+
+            <section id="layer-actions-section" class="actions-section hidden">
+                <div class="actions-row">
+                    <div class="selection-actions">
+                        <button id="layer-select-all-btn" class="btn btn-secondary">Select All</button>
+                        <button id="layer-select-none-btn" class="btn btn-secondary">Select None</button>
+                    </div>
+                    <div class="bulk-actions">
+                        <button id="layer-set-true-btn" class="btn btn-action" disabled>Set Enabled (true)</button>
+                        <button id="layer-set-false-btn" class="btn btn-action" disabled>Set Disabled (false)</button>
+                        <button id="layer-remove-prop-btn" class="btn btn-action" disabled>Remove Property</button>
+                    </div>
+                    <div class="filter-actions">
+                        <label for="layer-status-filter">Filter by status:</label>
+                        <select id="layer-status-filter">
+                            <option value="all">All</option>
+                            <option value="enabled">Enabled (true)</option>
+                            <option value="disabled">Disabled (false)</option>
+                            <option value="not-set">Not Set</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section id="layer-table-section" class="table-section hidden">
+                <table class="visuals-table layer-table">
+                    <thead>
+                        <tr>
+                            <th class="col-checkbox"><input type="checkbox" id="layer-header-checkbox"></th>
+                            <th class="col-page">Page</th>
+                            <th class="col-visual">Visual</th>
+                            <th class="col-type">Type</th>
+                            <th class="col-status">keepLayerOrder</th>
+                        </tr>
+                    </thead>
+                    <tbody id="layer-visuals-tbody">
+                    </tbody>
+                </table>
+            </section>
+
+            <section id="layer-save-section" class="save-section hidden">
+                <div class="save-row">
+                    <button id="layer-save-btn" class="btn btn-primary" disabled>Save Changes</button>
+                    <span id="layer-modified-status" class="modified-status">No changes</span>
+                </div>
+            </section>
+
+            <section id="layer-history-section" class="history-section hidden">
+                <div class="history-row">
+                    <button id="layer-undo-btn" class="btn btn-secondary" disabled>Undo</button>
+                    <button id="layer-undo-all-btn" class="btn btn-secondary" disabled>Undo All</button>
+                    <button id="layer-export-csv-btn" class="btn btn-secondary">Export CSV</button>
+                    <button id="layer-export-json-btn" class="btn btn-secondary">Export JSON</button>
+                    <span id="layer-history-status" class="history-status">History: 0 changes</span>
+                </div>
+            </section>
+        </div>
 
         <section id="empty-state" class="empty-state hidden">
             <p>No visual.json files found in the selected folder.</p>
@@ -132,9 +219,23 @@
                 <button id="close-modal-btn" class="close-btn">&times;</button>
             </div>
             <div class="modal-body">
-                <h3>What is isHiddenInViewMode Manager?</h3>
-                <p>This tool helps you manage filter visibility settings in Power BI reports. It allows you to control whether filters are <strong>hidden</strong> or <strong>visible</strong> when users view your report in reading mode.</p>
+                <h3>What is PBIR Visual Manager?</h3>
+                <p>This tool helps you manage visual properties in Power BI PBIR reports. It provides two main features:</p>
+                <ul>
+                    <li><strong>Filter Visibility</strong> - Control whether filters are hidden or visible in reading mode</li>
+                    <li><strong>Layer Order</strong> - Control whether visuals maintain their z-order during interactions</li>
+                </ul>
+
+                <h3>Filter Visibility (isHiddenInViewMode)</h3>
                 <p>The <code>isHiddenInViewMode</code> property determines if a filter pane is visible to report viewers. When set to <code>true</code>, the filter is hidden from users but still applies to the data.</p>
+
+                <h3>Layer Order (keepLayerOrder)</h3>
+                <p>The <code>keepLayerOrder</code> property controls whether visuals maintain their defined z-order (stacking order) during user interactions. This is critical for reports with overlapping elements or layered designs.</p>
+                <ul>
+                    <li><strong>Enabled (true)</strong> - Visual maintains its layer position</li>
+                    <li><strong>Disabled (false)</strong> - Visual may move to front on interaction</li>
+                    <li><strong>Not Set</strong> - Uses Power BI default behavior</li>
+                </ul>
 
                 <h3>Requirements</h3>
                 <div class="requirement-box">
@@ -161,25 +262,22 @@
                 <div class="step-item">
                     <span class="step-number">2</span>
                     <div class="step-content">
-                        <strong>Review Visuals</strong><br>
-                        The app displays all visuals with their current filter settings. Click the expand arrow to see individual filters for each visual.
+                        <strong>Choose Tab</strong><br>
+                        Select either "Filter Visibility" or "Layer Order" tab depending on which property you want to manage.
                     </div>
                 </div>
                 <div class="step-item">
                     <span class="step-number">3</span>
                     <div class="step-content">
-                        <strong>Select Visuals</strong><br>
+                        <strong>Review &amp; Select Visuals</strong><br>
                         Use checkboxes to select the visuals you want to modify. Use "Select All" or "Select None" for bulk selection.
                     </div>
                 </div>
                 <div class="step-item">
                     <span class="step-number">4</span>
                     <div class="step-content">
-                        <strong>Set Filter Visibility</strong><br>
-                        Click one of the action buttons:<br>
-                        &bull; <strong>Set Hidden (true)</strong> - Hide filters from viewers<br>
-                        &bull; <strong>Set Visible (false)</strong> - Show filters to viewers<br>
-                        &bull; <strong>Remove Property</strong> - Remove the setting (use default)
+                        <strong>Apply Changes</strong><br>
+                        Click the action buttons to set properties. For Filter Visibility, expand rows to modify individual filters.
                     </div>
                 </div>
                 <div class="step-item">
@@ -191,6 +289,7 @@
                 </div>
 
                 <h3>Understanding Status</h3>
+                <h4>Filter Visibility Status</h4>
                 <div class="status-legend">
                     <div class="status-legend-item">
                         <span class="status-badge status-hidden">Hidden</span>
@@ -214,13 +313,30 @@
                     </div>
                 </div>
 
+                <h4>Layer Order Status</h4>
+                <div class="status-legend">
+                    <div class="status-legend-item">
+                        <span class="status-badge status-visible">Enabled</span>
+                        <span>keepLayerOrder = true</span>
+                    </div>
+                    <div class="status-legend-item">
+                        <span class="status-badge status-hidden">Disabled</span>
+                        <span>keepLayerOrder = false</span>
+                    </div>
+                    <div class="status-legend-item">
+                        <span class="status-badge status-default">Not Set</span>
+                        <span>Property not set</span>
+                    </div>
+                </div>
+
                 <h3>Tips</h3>
                 <div class="tip-box">
                     <ul>
                         <li><strong>Undo changes:</strong> Use "Undo" or "Undo All" to revert changes before saving</li>
-                        <li><strong>Export reports:</strong> Use "Export CSV" or "Export JSON" to document your filter settings</li>
+                        <li><strong>Export reports:</strong> Use "Export CSV" or "Export JSON" to document your settings</li>
                         <li><strong>Filter by status:</strong> Use the dropdown to show only visuals with specific status</li>
-                        <li><strong>Individual filter control:</strong> Expand a visual row to modify individual filters</li>
+                        <li><strong>Individual filter control:</strong> In Filter Visibility tab, expand a visual row to modify individual filters</li>
+                        <li><strong>Independent tabs:</strong> Changes in one tab don't affect the other - you can work on both and save together</li>
                     </ul>
                 </div>
             </div>
