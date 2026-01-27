@@ -953,6 +953,480 @@ body {
     height: 14px;
 }
 
+/* ==================== Presets Section ==================== */
+.presets-section {
+    padding: 15px 20px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.presets-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.presets-title {
+    font-weight: 600;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.presets-grid {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+}
+
+.preset-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--text-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.preset-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.preset-btn:hover .preset-icon {
+    filter: brightness(0) invert(1);
+}
+
+.preset-icon {
+    font-size: 1rem;
+}
+
+.custom-presets-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-color);
+}
+
+.custom-presets-grid {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.custom-preset-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    background: #e3f2fd;
+    border: 1px solid #90caf9;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.custom-preset-btn:hover {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.custom-preset-delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    background: rgba(0,0,0,0.1);
+    border: none;
+    border-radius: 50%;
+    font-size: 0.7rem;
+    color: inherit;
+    cursor: pointer;
+    margin-left: 2px;
+}
+
+.custom-preset-delete:hover {
+    background: var(--danger-color);
+    color: white;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+}
+
+/* ==================== Batch Processing Section ==================== */
+.batch-intro-section {
+    padding: 15px 20px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.batch-description {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.batch-queue-section {
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.batch-queue-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.batch-queue-header h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.batch-queue-list {
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    min-height: 100px;
+    max-height: 250px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+.batch-queue-empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100px;
+    color: var(--text-muted);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.batch-queue-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.batch-queue-item:last-child {
+    border-bottom: none;
+}
+
+.batch-queue-icon {
+    font-size: 1.2rem;
+}
+
+.batch-queue-info {
+    flex: 1;
+}
+
+.batch-queue-name {
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.batch-queue-details {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.batch-queue-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.batch-queue-status.ready {
+    background: #e3f2fd;
+    color: var(--primary-color);
+}
+
+.batch-queue-status.processing {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.batch-queue-status.done {
+    background: #d4edda;
+    color: var(--success-color);
+}
+
+.batch-queue-status.error {
+    background: #f8d7da;
+    color: var(--danger-color);
+}
+
+.batch-queue-remove {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.batch-queue-remove:hover {
+    background: #f8d7da;
+    color: var(--danger-color);
+}
+
+.batch-settings-section {
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.batch-settings-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.batch-settings-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.batch-settings-row label {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+}
+
+.batch-settings-row select {
+    flex: 1;
+    max-width: 300px;
+    padding: 8px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.9rem;
+    background: white;
+}
+
+.batch-manual-settings {
+    padding: 15px;
+    background: var(--bg-color);
+    border-radius: 6px;
+}
+
+.batch-manual-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+
+.batch-checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.batch-checkbox-row:last-child {
+    margin-bottom: 0;
+}
+
+.batch-checkbox-row input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+}
+
+.batch-checkbox-row label {
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.batch-checkbox-row select {
+    padding: 6px 10px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-size: 0.85rem;
+    background: white;
+}
+
+.batch-checkbox-row select:disabled {
+    background: #e9ecef;
+    color: var(--text-muted);
+}
+
+.batch-action-section {
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.btn-large {
+    padding: 12px 30px;
+    font-size: 1rem;
+}
+
+.batch-status {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+}
+
+.batch-progress-section {
+    padding: 20px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.batch-progress-section h3 {
+    margin: 0 0 15px 0;
+    font-size: 1rem;
+    color: var(--text-color);
+}
+
+.batch-progress-bar {
+    height: 20px;
+    background: var(--bg-color);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.batch-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary-color), #64b5f6);
+    border-radius: 10px;
+    transition: width 0.3s ease;
+}
+
+.batch-progress-text {
+    text-align: center;
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 15px;
+}
+
+.batch-results-list {
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.batch-result-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    background: var(--bg-color);
+    border-radius: 6px;
+    margin-bottom: 8px;
+}
+
+.batch-result-item:last-child {
+    margin-bottom: 0;
+}
+
+.batch-result-icon {
+    font-size: 1.1rem;
+}
+
+.batch-result-name {
+    flex: 1;
+    font-size: 0.9rem;
+    color: var(--text-color);
+}
+
+.batch-result-count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* ==================== Save Preset Modal ==================== */
+.modal-sm {
+    max-width: 400px;
+}
+
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 15px 25px;
+    background: var(--bg-color);
+    border-top: 1px solid var(--border-color);
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+.form-group input[type="text"] {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    font-size: 0.95rem;
+}
+
+.form-group input[type="text"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 81, 186, 0.1);
+}
+
+.preset-config-summary {
+    background: var(--bg-color);
+    padding: 12px 15px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.preset-config-summary strong {
+    color: var(--text-color);
+}
+
 /* Responsive */
 @media (max-width: 992px) {
     .sponsor-sidebar {

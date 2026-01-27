@@ -23,7 +23,7 @@ class PBIRVisualManager {
         this.isProUser = false; // Will be set based on license validation
 
         // Presets state
-        this.presets = this.loadPresets();
+        this.customPresets = this.loadCustomPresets();
         this.builtInPresets = [
             { id: 'hide-all-filters', name: 'Hide All Filters', type: 'filter', value: true },
             { id: 'show-all-filters', name: 'Show All Filters', type: 'filter', value: false },
@@ -32,11 +32,16 @@ class PBIRVisualManager {
             { id: 'unlock-all-layers', name: 'Unlock All Layers', type: 'layer', value: false },
             { id: 'reset-all-layers', name: 'Reset All Layers', type: 'layer', value: undefined }
         ];
+        this.pendingPresetType = null; // Track which tab preset is being saved from
+
+        // Batch processing state
+        this.batchQueue = [];
+        this.batchProcessing = false;
 
         this.initElements();
         this.checkBrowserSupport();
         this.bindEvents();
-        this.renderPresetDropdowns();
+        this.renderCustomPresets();
     }
 
     initElements() {
@@ -112,6 +117,41 @@ class PBIRVisualManager {
             disabled: document.getElementById('layer-disabled'),
             notSet: document.getElementById('layer-not-set')
         };
+
+        // Presets elements
+        this.presetElements = {
+            filterPresetsSection: document.getElementById('filter-presets-section'),
+            filterCustomPresets: document.getElementById('filter-custom-presets'),
+            filterSavePresetBtn: document.getElementById('filter-save-preset-btn'),
+            layerPresetsSection: document.getElementById('layer-presets-section'),
+            layerCustomPresets: document.getElementById('layer-custom-presets'),
+            layerSavePresetBtn: document.getElementById('layer-save-preset-btn'),
+            savePresetModal: document.getElementById('save-preset-modal'),
+            presetNameInput: document.getElementById('preset-name-input'),
+            presetConfigSummary: document.getElementById('preset-config-summary'),
+            closePresetModalBtn: document.getElementById('close-preset-modal-btn'),
+            cancelPresetBtn: document.getElementById('cancel-preset-btn'),
+            confirmSavePresetBtn: document.getElementById('confirm-save-preset-btn')
+        };
+
+        // Batch processing elements
+        this.batchElements = {
+            queueSection: document.getElementById('batch-queue-section'),
+            queueList: document.getElementById('batch-queue-list'),
+            addReportBtn: document.getElementById('batch-add-report-btn'),
+            clearQueueBtn: document.getElementById('batch-clear-queue-btn'),
+            presetSelect: document.getElementById('batch-preset-select'),
+            filterEnabled: document.getElementById('batch-filter-enabled'),
+            filterValue: document.getElementById('batch-filter-value'),
+            layerEnabled: document.getElementById('batch-layer-enabled'),
+            layerValue: document.getElementById('batch-layer-value'),
+            processBtn: document.getElementById('batch-process-btn'),
+            batchStatus: document.getElementById('batch-status'),
+            progressSection: document.getElementById('batch-progress-section'),
+            progressFill: document.getElementById('batch-progress-fill'),
+            progressText: document.getElementById('batch-progress-text'),
+            resultsList: document.getElementById('batch-results-list')
+        };
     }
 
     checkBrowserSupport() {
@@ -168,6 +208,53 @@ class PBIRVisualManager {
         this.layerElements.statusFilter.addEventListener('change', (e) => {
             this.layerCurrentFilter = e.target.value;
             this.renderLayerTable();
+        });
+
+        // Preset button events (built-in presets)
+        document.querySelectorAll('.preset-btn[data-preset]').forEach(btn => {
+            btn.addEventListener('click', () => this.applyPreset(btn.dataset.preset));
+        });
+
+        // Save preset button events
+        this.presetElements.filterSavePresetBtn.addEventListener('click', () => this.openSavePresetModal('filter'));
+        this.presetElements.layerSavePresetBtn.addEventListener('click', () => this.openSavePresetModal('layer'));
+
+        // Save preset modal events
+        this.presetElements.closePresetModalBtn.addEventListener('click', () => this.closeSavePresetModal());
+        this.presetElements.cancelPresetBtn.addEventListener('click', () => this.closeSavePresetModal());
+        this.presetElements.confirmSavePresetBtn.addEventListener('click', () => this.confirmSavePreset());
+        this.presetElements.savePresetModal.addEventListener('click', (e) => {
+            if (e.target === this.presetElements.savePresetModal) this.closeSavePresetModal();
+        });
+
+        // Batch processing events
+        this.batchElements.addReportBtn.addEventListener('click', () => this.addReportToQueue());
+        this.batchElements.clearQueueBtn.addEventListener('click', () => this.clearBatchQueue());
+        this.batchElements.processBtn.addEventListener('click', () => this.processBatch());
+
+        // Batch preset select
+        this.batchElements.presetSelect.addEventListener('change', (e) => {
+            if (e.target.value) {
+                // Disable manual settings when preset is selected
+                this.batchElements.filterEnabled.checked = false;
+                this.batchElements.filterValue.disabled = true;
+                this.batchElements.layerEnabled.checked = false;
+                this.batchElements.layerValue.disabled = true;
+            }
+            this.updateBatchProcessButton();
+        });
+
+        // Batch manual settings checkboxes
+        this.batchElements.filterEnabled.addEventListener('change', (e) => {
+            this.batchElements.filterValue.disabled = !e.target.checked;
+            if (e.target.checked) this.batchElements.presetSelect.value = '';
+            this.updateBatchProcessButton();
+        });
+
+        this.batchElements.layerEnabled.addEventListener('change', (e) => {
+            this.batchElements.layerValue.disabled = !e.target.checked;
+            if (e.target.checked) this.batchElements.presetSelect.value = '';
+            this.updateBatchProcessButton();
         });
     }
 
@@ -1268,9 +1355,10 @@ class PBIRVisualManager {
         this.filterElements.saveSection.classList.add('hidden');
         this.filterElements.historySection.classList.add('hidden');
 
-        // Hide filter legend
+        // Hide filter legend and presets
         const filterLegend = document.getElementById('filter-legend-section');
         if (filterLegend) filterLegend.classList.add('hidden');
+        this.presetElements.filterPresetsSection.classList.add('hidden');
 
         // Hide layer tab sections
         this.layerElements.summarySection.classList.add('hidden');
@@ -1279,9 +1367,10 @@ class PBIRVisualManager {
         this.layerElements.saveSection.classList.add('hidden');
         this.layerElements.historySection.classList.add('hidden');
 
-        // Hide layer legend
+        // Hide layer legend and presets
         const layerLegend = document.getElementById('layer-legend-section');
         if (layerLegend) layerLegend.classList.add('hidden');
+        this.presetElements.layerPresetsSection.classList.add('hidden');
 
         this.emptyState.classList.remove('hidden');
     }
@@ -1297,9 +1386,10 @@ class PBIRVisualManager {
         this.filterElements.saveSection.classList.remove('hidden');
         this.filterElements.historySection.classList.remove('hidden');
 
-        // Show filter legend
+        // Show filter legend and presets
         const filterLegend = document.getElementById('filter-legend-section');
         if (filterLegend) filterLegend.classList.remove('hidden');
+        this.presetElements.filterPresetsSection.classList.remove('hidden');
 
         // Show layer tab sections
         this.layerElements.summarySection.classList.remove('hidden');
@@ -1308,9 +1398,10 @@ class PBIRVisualManager {
         this.layerElements.saveSection.classList.remove('hidden');
         this.layerElements.historySection.classList.remove('hidden');
 
-        // Show layer legend
+        // Show layer legend and presets
         const layerLegend = document.getElementById('layer-legend-section');
         if (layerLegend) layerLegend.classList.remove('hidden');
+        this.presetElements.layerPresetsSection.classList.remove('hidden');
     }
 
     async saveChanges() {
@@ -1389,6 +1480,572 @@ class PBIRVisualManager {
 
     closeDocModal() {
         this.docModal.classList.add('hidden');
+    }
+
+    // ==================== Preset Methods ====================
+
+    loadCustomPresets() {
+        try {
+            const stored = localStorage.getItem('pbirVisualManager_customPresets');
+            return stored ? JSON.parse(stored) : [];
+        } catch (err) {
+            console.warn('Failed to load custom presets:', err);
+            return [];
+        }
+    }
+
+    saveCustomPresetsToStorage() {
+        try {
+            localStorage.setItem('pbirVisualManager_customPresets', JSON.stringify(this.customPresets));
+        } catch (err) {
+            console.warn('Failed to save custom presets:', err);
+        }
+    }
+
+    applyPreset(presetId) {
+        if (this.visuals.length === 0) {
+            this.showToast('Please select a folder first', 'error');
+            return;
+        }
+
+        const preset = this.builtInPresets.find(p => p.id === presetId) ||
+                       this.customPresets.find(p => p.id === presetId);
+
+        if (!preset) {
+            this.showToast('Preset not found', 'error');
+            return;
+        }
+
+        // Select all visuals first
+        if (preset.type === 'filter') {
+            // Select all visuals
+            this.filterSelectedVisuals.clear();
+            for (const visual of this.visuals) {
+                this.filterSelectedVisuals.add(visual.path);
+            }
+            // Apply the value
+            this.filterBulkSetValue(preset.value);
+        } else if (preset.type === 'layer') {
+            // Select all visuals
+            this.layerSelectedVisuals.clear();
+            for (const visual of this.visuals) {
+                this.layerSelectedVisuals.add(visual.path);
+            }
+            // Apply the value
+            this.layerBulkSetValue(preset.value);
+        }
+    }
+
+    openSavePresetModal(type) {
+        this.pendingPresetType = type;
+        this.presetElements.presetNameInput.value = '';
+
+        // Show config summary
+        let summary = '';
+        if (type === 'filter') {
+            const counts = { hidden: 0, visible: 0, default: 0 };
+            for (const visual of this.visuals) {
+                for (const filter of visual.filters) {
+                    if (filter.isHiddenInViewMode === true) counts.hidden++;
+                    else if (filter.isHiddenInViewMode === false) counts.visible++;
+                    else counts.default++;
+                }
+            }
+            summary = `<strong>Filter settings:</strong> ${counts.hidden} hidden, ${counts.visible} visible, ${counts.default} default`;
+        } else {
+            const counts = { enabled: 0, disabled: 0, notSet: 0 };
+            for (const visual of this.visuals) {
+                if (visual.keepLayerOrder === true) counts.enabled++;
+                else if (visual.keepLayerOrder === false) counts.disabled++;
+                else counts.notSet++;
+            }
+            summary = `<strong>Layer settings:</strong> ${counts.enabled} enabled, ${counts.disabled} disabled, ${counts.notSet} not set`;
+        }
+        this.presetElements.presetConfigSummary.innerHTML = summary;
+
+        this.presetElements.savePresetModal.classList.remove('hidden');
+        this.presetElements.presetNameInput.focus();
+    }
+
+    closeSavePresetModal() {
+        this.presetElements.savePresetModal.classList.add('hidden');
+        this.pendingPresetType = null;
+    }
+
+    confirmSavePreset() {
+        const name = this.presetElements.presetNameInput.value.trim();
+        if (!name) {
+            this.showToast('Please enter a preset name', 'error');
+            return;
+        }
+
+        const preset = {
+            id: 'custom-' + Date.now(),
+            name: name,
+            type: this.pendingPresetType,
+            createdAt: new Date().toISOString()
+        };
+
+        // Store current settings
+        if (this.pendingPresetType === 'filter') {
+            preset.filterSettings = this.visuals.map(v => ({
+                path: v.path,
+                filters: v.filters.map(f => ({ isHiddenInViewMode: f.isHiddenInViewMode }))
+            }));
+        } else {
+            preset.layerSettings = this.visuals.map(v => ({
+                path: v.path,
+                keepLayerOrder: v.keepLayerOrder
+            }));
+        }
+
+        this.customPresets.push(preset);
+        this.saveCustomPresetsToStorage();
+        this.renderCustomPresets();
+        this.closeSavePresetModal();
+        this.showToast(`Preset "${name}" saved`, 'success');
+    }
+
+    deleteCustomPreset(presetId) {
+        const index = this.customPresets.findIndex(p => p.id === presetId);
+        if (index !== -1) {
+            const preset = this.customPresets[index];
+            this.customPresets.splice(index, 1);
+            this.saveCustomPresetsToStorage();
+            this.renderCustomPresets();
+            this.showToast(`Preset "${preset.name}" deleted`, 'success');
+        }
+    }
+
+    renderCustomPresets() {
+        const filterPresets = this.customPresets.filter(p => p.type === 'filter');
+        const layerPresets = this.customPresets.filter(p => p.type === 'layer');
+
+        // Render filter custom presets
+        this.presetElements.filterCustomPresets.innerHTML = filterPresets.map(preset => `
+            <div class="custom-preset-btn" data-preset="${preset.id}" title="${preset.name}">
+                <span>${this.escapeHtml(preset.name)}</span>
+                <button class="custom-preset-delete" data-delete="${preset.id}" title="Delete preset">&times;</button>
+            </div>
+        `).join('');
+
+        // Render layer custom presets
+        this.presetElements.layerCustomPresets.innerHTML = layerPresets.map(preset => `
+            <div class="custom-preset-btn" data-preset="${preset.id}" title="${preset.name}">
+                <span>${this.escapeHtml(preset.name)}</span>
+                <button class="custom-preset-delete" data-delete="${preset.id}" title="Delete preset">&times;</button>
+            </div>
+        `).join('');
+
+        // Bind click events for custom presets
+        document.querySelectorAll('.custom-preset-btn[data-preset]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (!e.target.classList.contains('custom-preset-delete')) {
+                    this.applyCustomPreset(btn.dataset.preset);
+                }
+            });
+        });
+
+        // Bind delete events
+        document.querySelectorAll('.custom-preset-delete[data-delete]').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation();
+                this.deleteCustomPreset(btn.dataset.delete);
+            });
+        });
+    }
+
+    applyCustomPreset(presetId) {
+        const preset = this.customPresets.find(p => p.id === presetId);
+        if (!preset) return;
+
+        if (this.visuals.length === 0) {
+            this.showToast('Please select a folder first', 'error');
+            return;
+        }
+
+        let appliedCount = 0;
+
+        if (preset.type === 'filter' && preset.filterSettings) {
+            for (const setting of preset.filterSettings) {
+                const visual = this.visuals.find(v => v.path === setting.path);
+                if (visual && setting.filters) {
+                    for (let i = 0; i < Math.min(visual.filters.length, setting.filters.length); i++) {
+                        if (visual.filters[i].isHiddenInViewMode !== setting.filters[i].isHiddenInViewMode) {
+                            visual.filters[i].isHiddenInViewMode = setting.filters[i].isHiddenInViewMode;
+                            appliedCount++;
+                        }
+                    }
+                    this.applyFilterToJson(visual);
+                    visual.filterModified = true;
+                }
+            }
+            this.updateFilterSummary();
+            this.updateFilterModifiedStatus();
+            this.renderFilterTable();
+        } else if (preset.type === 'layer' && preset.layerSettings) {
+            for (const setting of preset.layerSettings) {
+                const visual = this.visuals.find(v => v.path === setting.path);
+                if (visual && visual.keepLayerOrder !== setting.keepLayerOrder) {
+                    visual.keepLayerOrder = setting.keepLayerOrder;
+                    this.applyKeepLayerOrderToJson(visual, setting.keepLayerOrder);
+                    visual.layerModified = true;
+                    appliedCount++;
+                }
+            }
+            this.updateLayerSummary();
+            this.updateLayerModifiedStatus();
+            this.renderLayerTable();
+        }
+
+        this.showToast(`Applied preset "${preset.name}"`, 'success');
+    }
+
+    // ==================== Batch Processing Methods ====================
+
+    async addReportToQueue() {
+        try {
+            const handle = await window.showDirectoryPicker();
+
+            // Check if already in queue
+            if (this.batchQueue.some(r => r.name === handle.name)) {
+                this.showToast('This folder is already in the queue', 'error');
+                return;
+            }
+
+            // Scan for visual count
+            const visualCount = await this.countVisualsInFolder(handle);
+
+            const report = {
+                handle: handle,
+                name: handle.name,
+                visualCount: visualCount,
+                status: 'ready',
+                updatedCount: 0,
+                error: null
+            };
+
+            this.batchQueue.push(report);
+            this.renderBatchQueue();
+            this.updateBatchProcessButton();
+            this.showToast(`Added "${handle.name}" to queue`, 'success');
+        } catch (err) {
+            if (err.name !== 'AbortError') {
+                this.showToast('Error selecting folder: ' + err.message, 'error');
+            }
+        }
+    }
+
+    async countVisualsInFolder(dirHandle, depth = 0) {
+        const MAX_DEPTH = 50;
+        if (depth >= MAX_DEPTH) return 0;
+
+        let count = 0;
+        for await (const entry of dirHandle.values()) {
+            if (entry.kind === 'directory') {
+                count += await this.countVisualsInFolder(entry, depth + 1);
+            } else if (entry.kind === 'file' && entry.name === 'visual.json') {
+                count++;
+            }
+        }
+        return count;
+    }
+
+    removeReportFromQueue(index) {
+        if (index >= 0 && index < this.batchQueue.length) {
+            const report = this.batchQueue[index];
+            this.batchQueue.splice(index, 1);
+            this.renderBatchQueue();
+            this.updateBatchProcessButton();
+            this.showToast(`Removed "${report.name}" from queue`, 'success');
+        }
+    }
+
+    clearBatchQueue() {
+        this.batchQueue = [];
+        this.renderBatchQueue();
+        this.updateBatchProcessButton();
+        this.batchElements.progressSection.classList.add('hidden');
+        this.showToast('Queue cleared', 'success');
+    }
+
+    renderBatchQueue() {
+        if (this.batchQueue.length === 0) {
+            this.batchElements.queueList.innerHTML = '<div class="batch-queue-empty">No reports added. Click "Add Report" to start.</div>';
+            this.batchElements.clearQueueBtn.disabled = true;
+            return;
+        }
+
+        this.batchElements.clearQueueBtn.disabled = false;
+        this.batchElements.queueList.innerHTML = this.batchQueue.map((report, index) => {
+            const statusClass = report.status;
+            const statusText = report.status === 'ready' ? 'Ready' :
+                              report.status === 'processing' ? 'Processing...' :
+                              report.status === 'done' ? `Done (${report.updatedCount} updated)` :
+                              `Error: ${report.error}`;
+
+            return `
+                <div class="batch-queue-item">
+                    <span class="batch-queue-icon">&#128193;</span>
+                    <div class="batch-queue-info">
+                        <div class="batch-queue-name">${this.escapeHtml(report.name)}</div>
+                        <div class="batch-queue-details">${report.visualCount} visuals</div>
+                    </div>
+                    <span class="batch-queue-status ${statusClass}">${statusText}</span>
+                    <button class="batch-queue-remove" data-index="${index}" title="Remove">&times;</button>
+                </div>
+            `;
+        }).join('');
+
+        // Bind remove buttons
+        this.batchElements.queueList.querySelectorAll('.batch-queue-remove').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const index = parseInt(btn.dataset.index);
+                this.removeReportFromQueue(index);
+            });
+        });
+    }
+
+    updateBatchProcessButton() {
+        const hasQueue = this.batchQueue.length > 0;
+        const hasSettings = this.batchElements.presetSelect.value ||
+                          this.batchElements.filterEnabled.checked ||
+                          this.batchElements.layerEnabled.checked;
+
+        this.batchElements.processBtn.disabled = !hasQueue || !hasSettings || this.batchProcessing;
+
+        if (!hasQueue) {
+            this.batchElements.batchStatus.textContent = 'Add reports to the queue first';
+        } else if (!hasSettings) {
+            this.batchElements.batchStatus.textContent = 'Select a preset or configure settings';
+        } else {
+            this.batchElements.batchStatus.textContent = `Ready to process ${this.batchQueue.length} report(s)`;
+        }
+    }
+
+    async processBatch() {
+        if (this.batchQueue.length === 0 || this.batchProcessing) return;
+
+        this.batchProcessing = true;
+        this.batchElements.processBtn.disabled = true;
+        this.batchElements.progressSection.classList.remove('hidden');
+        this.batchElements.resultsList.innerHTML = '';
+
+        // Get settings to apply
+        const settings = this.getBatchSettings();
+
+        let processed = 0;
+        const total = this.batchQueue.length;
+
+        for (const report of this.batchQueue) {
+            report.status = 'processing';
+            this.renderBatchQueue();
+            this.updateBatchProgress(processed, total);
+
+            try {
+                const result = await this.processReportFolder(report.handle, settings);
+                report.status = 'done';
+                report.updatedCount = result.updatedCount;
+
+                this.addBatchResult(report.name, 'done', result.updatedCount);
+            } catch (err) {
+                report.status = 'error';
+                report.error = err.message;
+                this.addBatchResult(report.name, 'error', 0, err.message);
+            }
+
+            processed++;
+            this.updateBatchProgress(processed, total);
+            this.renderBatchQueue();
+        }
+
+        this.batchProcessing = false;
+        this.updateBatchProcessButton();
+        this.showToast(`Batch processing complete: ${processed} report(s) processed`, 'success');
+    }
+
+    getBatchSettings() {
+        const settings = {
+            filterEnabled: false,
+            filterValue: undefined,
+            layerEnabled: false,
+            layerValue: undefined
+        };
+
+        // Check if preset is selected
+        const presetId = this.batchElements.presetSelect.value;
+        if (presetId) {
+            const preset = this.builtInPresets.find(p => p.id === presetId);
+            if (preset) {
+                if (preset.type === 'filter') {
+                    settings.filterEnabled = true;
+                    settings.filterValue = preset.value;
+                } else if (preset.type === 'layer') {
+                    settings.layerEnabled = true;
+                    settings.layerValue = preset.value;
+                }
+            }
+        } else {
+            // Use manual settings
+            if (this.batchElements.filterEnabled.checked) {
+                settings.filterEnabled = true;
+                const val = this.batchElements.filterValue.value;
+                settings.filterValue = val === 'true' ? true : (val === 'false' ? false : undefined);
+            }
+            if (this.batchElements.layerEnabled.checked) {
+                settings.layerEnabled = true;
+                const val = this.batchElements.layerValue.value;
+                settings.layerValue = val === 'true' ? true : (val === 'false' ? false : undefined);
+            }
+        }
+
+        return settings;
+    }
+
+    async processReportFolder(dirHandle, settings) {
+        const visuals = [];
+        await this.collectVisualsFromFolder(dirHandle, '', visuals);
+
+        let updatedCount = 0;
+
+        for (const visual of visuals) {
+            let modified = false;
+
+            // Apply filter settings
+            if (settings.filterEnabled && visual.filters.length > 0) {
+                for (const filter of visual.filters) {
+                    if (filter.isHiddenInViewMode !== settings.filterValue) {
+                        filter.isHiddenInViewMode = settings.filterValue;
+                        modified = true;
+                    }
+                }
+                if (modified) {
+                    this.applyFilterToJsonBatch(visual, settings.filterValue);
+                }
+            }
+
+            // Apply layer settings
+            if (settings.layerEnabled) {
+                if (visual.keepLayerOrder !== settings.layerValue) {
+                    visual.keepLayerOrder = settings.layerValue;
+                    this.applyKeepLayerOrderToJsonBatch(visual, settings.layerValue);
+                    modified = true;
+                }
+            }
+
+            // Save if modified
+            if (modified) {
+                const writable = await visual.fileHandle.createWritable();
+                const content = JSON.stringify(visual.json, null, 2);
+                await writable.write(content);
+                await writable.close();
+                updatedCount++;
+            }
+        }
+
+        return { updatedCount };
+    }
+
+    async collectVisualsFromFolder(dirHandle, currentPath, visuals, depth = 0) {
+        const MAX_DEPTH = 50;
+        if (depth >= MAX_DEPTH) return;
+
+        for await (const entry of dirHandle.values()) {
+            const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+
+            if (entry.kind === 'directory') {
+                await this.collectVisualsFromFolder(entry, entryPath, visuals, depth + 1);
+            } else if (entry.kind === 'file' && entry.name === 'visual.json') {
+                try {
+                    const file = await entry.getFile();
+                    const content = await file.text();
+                    const json = JSON.parse(content);
+
+                    visuals.push({
+                        path: entryPath,
+                        fileHandle: entry,
+                        json: json,
+                        filters: this.extractFilters(json),
+                        keepLayerOrder: this.extractKeepLayerOrder(json)
+                    });
+                } catch (err) {
+                    console.warn(`Skipped invalid file: ${entryPath}`, err);
+                }
+            }
+        }
+    }
+
+    applyFilterToJsonBatch(visual, value) {
+        if (visual.json.filterConfig && Array.isArray(visual.json.filterConfig.filters)) {
+            for (const filter of visual.json.filterConfig.filters) {
+                if (value === undefined) {
+                    delete filter.isHiddenInViewMode;
+                } else {
+                    filter.isHiddenInViewMode = value;
+                }
+            }
+        }
+        if (Array.isArray(visual.json.filters)) {
+            for (const filter of visual.json.filters) {
+                if (value === undefined) {
+                    delete filter.isHiddenInViewMode;
+                } else {
+                    filter.isHiddenInViewMode = value;
+                }
+            }
+        }
+    }
+
+    applyKeepLayerOrderToJsonBatch(visual, value) {
+        if (!visual.json.visual) visual.json.visual = {};
+        if (!visual.json.visual.visualContainerObjects) {
+            visual.json.visual.visualContainerObjects = {};
+        }
+
+        const vco = visual.json.visual.visualContainerObjects;
+
+        if (value === undefined) {
+            if (vco.general?.[0]?.properties?.keepLayerOrder) {
+                delete vco.general[0].properties.keepLayerOrder;
+                if (Object.keys(vco.general[0].properties).length === 0) {
+                    delete vco.general[0].properties;
+                }
+                if (vco.general[0] && Object.keys(vco.general[0]).length === 0) {
+                    vco.general.shift();
+                }
+                if (vco.general && vco.general.length === 0) {
+                    delete vco.general;
+                }
+            }
+        } else {
+            if (!vco.general) vco.general = [];
+            if (vco.general.length === 0) vco.general.push({});
+            if (!vco.general[0].properties) vco.general[0].properties = {};
+
+            vco.general[0].properties.keepLayerOrder = {
+                expr: { Literal: { Value: value.toString() } }
+            };
+        }
+    }
+
+    updateBatchProgress(current, total) {
+        const percent = total > 0 ? (current / total) * 100 : 0;
+        this.batchElements.progressFill.style.width = `${percent}%`;
+        this.batchElements.progressText.textContent = `${current} / ${total} reports processed`;
+    }
+
+    addBatchResult(name, status, count, error = null) {
+        const icon = status === 'done' ? '&#9989;' : '&#10060;';
+        const detail = status === 'done' ? `${count} visuals updated` : error;
+
+        const resultHtml = `
+            <div class="batch-result-item">
+                <span class="batch-result-icon">${icon}</span>
+                <span class="batch-result-name">${this.escapeHtml(name)}</span>
+                <span class="batch-result-count">${this.escapeHtml(detail)}</span>
+            </div>
+        `;
+        this.batchElements.resultsList.innerHTML += resultHtml;
     }
 }
 

@@ -39,6 +39,7 @@
         <div id="tab-navigation" class="tab-navigation hidden">
             <button class="tab-btn active" data-tab="filter-visibility">Filter Visibility</button>
             <button class="tab-btn" data-tab="layer-order">Layer Order</button>
+            <button class="tab-btn" data-tab="batch-processing">Batch Processing</button>
         </div>
 
         <!-- Filter Visibility Tab -->
@@ -77,6 +78,30 @@
                         <span class="status-badge status-mixed">Mixed</span><span>Filters have different settings</span>
                     </div>
                 </details>
+            </section>
+
+            <!-- Filter Presets Section -->
+            <section id="filter-presets-section" class="presets-section hidden">
+                <div class="presets-header">
+                    <span class="presets-title">Quick Actions</span>
+                </div>
+                <div class="presets-grid">
+                    <button class="preset-btn" data-preset="hide-all-filters" title="Set all filters to hidden">
+                        <span class="preset-icon">&#128065;&#65039;</span> Hide All
+                    </button>
+                    <button class="preset-btn" data-preset="show-all-filters" title="Set all filters to visible">
+                        <span class="preset-icon">&#128064;</span> Show All
+                    </button>
+                    <button class="preset-btn" data-preset="reset-all-filters" title="Remove property from all filters">
+                        <span class="preset-icon">&#8635;</span> Reset All
+                    </button>
+                </div>
+                <div class="custom-presets-container">
+                    <div id="filter-custom-presets" class="custom-presets-grid"></div>
+                    <button id="filter-save-preset-btn" class="btn btn-secondary btn-sm" title="Save current selection as a preset">
+                        + Save Preset
+                    </button>
+                </div>
             </section>
 
             <section id="filter-actions-section" class="actions-section hidden">
@@ -174,6 +199,30 @@
                 </details>
             </section>
 
+            <!-- Layer Order Presets Section -->
+            <section id="layer-presets-section" class="presets-section hidden">
+                <div class="presets-header">
+                    <span class="presets-title">Quick Actions</span>
+                </div>
+                <div class="presets-grid">
+                    <button class="preset-btn" data-preset="lock-all-layers" title="Enable keepLayerOrder for all visuals">
+                        <span class="preset-icon">&#128274;</span> Lock All
+                    </button>
+                    <button class="preset-btn" data-preset="unlock-all-layers" title="Disable keepLayerOrder for all visuals">
+                        <span class="preset-icon">&#128275;</span> Unlock All
+                    </button>
+                    <button class="preset-btn" data-preset="reset-all-layers" title="Remove keepLayerOrder property from all visuals">
+                        <span class="preset-icon">&#8635;</span> Reset All
+                    </button>
+                </div>
+                <div class="custom-presets-container">
+                    <div id="layer-custom-presets" class="custom-presets-grid"></div>
+                    <button id="layer-save-preset-btn" class="btn btn-secondary btn-sm" title="Save current selection as a preset">
+                        + Save Preset
+                    </button>
+                </div>
+            </section>
+
             <section id="layer-actions-section" class="actions-section hidden">
                 <div class="actions-row">
                     <div class="selection-actions">
@@ -232,6 +281,79 @@
             </section>
         </div>
 
+        <!-- Batch Processing Tab -->
+        <div id="tab-batch-processing" class="tab-content hidden">
+            <section id="batch-intro-section" class="batch-intro-section">
+                <p class="batch-description">Process multiple PBIR report folders at once. Add reports to the queue, select settings, and apply changes to all reports.</p>
+            </section>
+
+            <section id="batch-queue-section" class="batch-queue-section">
+                <div class="batch-queue-header">
+                    <h3>Report Queue</h3>
+                    <button id="batch-clear-queue-btn" class="btn btn-secondary btn-sm" disabled>Clear All</button>
+                </div>
+                <div id="batch-queue-list" class="batch-queue-list">
+                    <div class="batch-queue-empty">No reports added. Click "Add Report" to start.</div>
+                </div>
+                <button id="batch-add-report-btn" class="btn btn-primary">+ Add Report Folder</button>
+            </section>
+
+            <section id="batch-settings-section" class="batch-settings-section">
+                <h3>Batch Settings</h3>
+                <div class="batch-settings-row">
+                    <label for="batch-preset-select">Apply Preset:</label>
+                    <select id="batch-preset-select">
+                        <option value="">-- Select a preset --</option>
+                        <optgroup label="Filter Visibility">
+                            <option value="hide-all-filters">Hide All Filters</option>
+                            <option value="show-all-filters">Show All Filters</option>
+                            <option value="reset-all-filters">Reset All Filters</option>
+                        </optgroup>
+                        <optgroup label="Layer Order">
+                            <option value="lock-all-layers">Lock All Layers</option>
+                            <option value="unlock-all-layers">Unlock All Layers</option>
+                            <option value="reset-all-layers">Reset All Layers</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div class="batch-manual-settings">
+                    <p class="batch-manual-label">Or configure manually:</p>
+                    <div class="batch-checkbox-row">
+                        <input type="checkbox" id="batch-filter-enabled">
+                        <label for="batch-filter-enabled">Set isHiddenInViewMode to:</label>
+                        <select id="batch-filter-value" disabled>
+                            <option value="true">Hidden (true)</option>
+                            <option value="false">Visible (false)</option>
+                            <option value="undefined">Remove property</option>
+                        </select>
+                    </div>
+                    <div class="batch-checkbox-row">
+                        <input type="checkbox" id="batch-layer-enabled">
+                        <label for="batch-layer-enabled">Set keepLayerOrder to:</label>
+                        <select id="batch-layer-value" disabled>
+                            <option value="true">Enabled (true)</option>
+                            <option value="false">Disabled (false)</option>
+                            <option value="undefined">Remove property</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section id="batch-action-section" class="batch-action-section">
+                <button id="batch-process-btn" class="btn btn-primary btn-large" disabled>Apply to All Reports</button>
+                <span id="batch-status" class="batch-status"></span>
+            </section>
+
+            <section id="batch-progress-section" class="batch-progress-section hidden">
+                <h3>Processing Progress</h3>
+                <div class="batch-progress-bar">
+                    <div id="batch-progress-fill" class="batch-progress-fill" style="width: 0%"></div>
+                </div>
+                <div id="batch-progress-text" class="batch-progress-text">0 / 0 reports processed</div>
+                <div id="batch-results-list" class="batch-results-list"></div>
+            </section>
+        </div>
+
         <section id="empty-state" class="empty-state hidden">
             <h3>No visuals found</h3>
             <p>This usually means:</p>
@@ -283,6 +405,27 @@
     </footer>
 
     <div id="toast" class="toast hidden"></div>
+
+    <!-- Save Preset Modal -->
+    <div id="save-preset-modal" class="modal hidden">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h2>Save Preset</h2>
+                <button id="close-preset-modal-btn" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="preset-name-input">Preset Name:</label>
+                    <input type="text" id="preset-name-input" placeholder="Enter preset name" maxlength="30">
+                </div>
+                <div id="preset-config-summary" class="preset-config-summary"></div>
+            </div>
+            <div class="modal-footer">
+                <button id="cancel-preset-btn" class="btn btn-secondary">Cancel</button>
+                <button id="confirm-save-preset-btn" class="btn btn-primary">Save Preset</button>
+            </div>
+        </div>
+    </div>
 
     <!-- Documentation Modal -->
     <div id="doc-modal" class="modal hidden">
