@@ -31,6 +31,7 @@
         <section class="folder-section">
             <button id="select-folder-btn" class="btn btn-primary">Select Folder</button>
             <span id="folder-path" class="folder-path">No folder selected</span>
+            <p class="folder-help">Select the root folder of your PBIR report (the folder containing 'pages' or 'definition' subdirectories)</p>
         </section>
 
         <!-- Tab Navigation -->
@@ -64,6 +65,19 @@
                 </div>
             </section>
 
+            <!-- Status Legend for Filter Visibility -->
+            <section id="filter-legend-section" class="legend-section hidden">
+                <details class="legend-details">
+                    <summary>Status Legend</summary>
+                    <div class="legend-grid">
+                        <span class="status-badge status-hidden">Hidden</span><span>Filter hidden from viewers</span>
+                        <span class="status-badge status-visible">Visible</span><span>Filter visible to viewers</span>
+                        <span class="status-badge status-default">Default</span><span>Using Power BI default</span>
+                        <span class="status-badge status-mixed">Mixed</span><span>Filters have different settings</span>
+                    </div>
+                </details>
+            </section>
+
             <section id="filter-actions-section" class="actions-section hidden">
                 <div class="actions-row">
                     <div class="selection-actions">
@@ -71,10 +85,11 @@
                         <button id="filter-select-none-btn" class="btn btn-secondary">Select None</button>
                     </div>
                     <div class="bulk-actions">
-                        <button id="set-true-btn" class="btn btn-action" disabled>Set Hidden (true)</button>
-                        <button id="set-false-btn" class="btn btn-action" disabled>Set Visible (false)</button>
-                        <button id="filter-remove-prop-btn" class="btn btn-action" disabled>Remove Property</button>
+                        <button id="set-true-btn" class="btn btn-action" disabled title="Hide filters from report viewers (select visuals first)">Set Hidden (true)</button>
+                        <button id="set-false-btn" class="btn btn-action" disabled title="Show filters to report viewers (select visuals first)">Set Visible (false)</button>
+                        <button id="filter-remove-prop-btn" class="btn btn-action" disabled title="Remove the property and use Power BI default (select visuals first)">Remove Property</button>
                     </div>
+                    <p class="action-hint" id="filter-action-hint">Select one or more visuals to enable actions</p>
                     <div class="filter-actions">
                         <label for="filter-status-filter">Filter by status:</label>
                         <select id="filter-status-filter">
@@ -146,6 +161,18 @@
                 </div>
             </section>
 
+            <!-- Status Legend for Layer Order -->
+            <section id="layer-legend-section" class="legend-section hidden">
+                <details class="legend-details">
+                    <summary>Status Legend</summary>
+                    <div class="legend-grid">
+                        <span class="status-badge status-visible">Enabled</span><span>Visual stays in its layer position</span>
+                        <span class="status-badge status-hidden">Disabled</span><span>Visual may move to front on click</span>
+                        <span class="status-badge status-default">Not Set</span><span>Using Power BI default behavior</span>
+                    </div>
+                </details>
+            </section>
+
             <section id="layer-actions-section" class="actions-section hidden">
                 <div class="actions-row">
                     <div class="selection-actions">
@@ -153,10 +180,11 @@
                         <button id="layer-select-none-btn" class="btn btn-secondary">Select None</button>
                     </div>
                     <div class="bulk-actions">
-                        <button id="layer-set-true-btn" class="btn btn-action" disabled>Set Enabled (true)</button>
-                        <button id="layer-set-false-btn" class="btn btn-action" disabled>Set Disabled (false)</button>
-                        <button id="layer-remove-prop-btn" class="btn btn-action" disabled>Remove Property</button>
+                        <button id="layer-set-true-btn" class="btn btn-action" disabled title="Keep visuals in their defined layer order (select visuals first)">Set Enabled (true)</button>
+                        <button id="layer-set-false-btn" class="btn btn-action" disabled title="Allow visuals to move to front on interaction (select visuals first)">Set Disabled (false)</button>
+                        <button id="layer-remove-prop-btn" class="btn btn-action" disabled title="Remove the property and use Power BI default (select visuals first)">Remove Property</button>
                     </div>
+                    <p class="action-hint" id="layer-action-hint">Select one or more visuals to enable actions</p>
                     <div class="filter-actions">
                         <label for="layer-status-filter">Filter by status:</label>
                         <select id="layer-status-filter">
@@ -177,7 +205,7 @@
                             <th class="col-page">Page</th>
                             <th class="col-visual">Visual</th>
                             <th class="col-type">Type</th>
-                            <th class="col-status">keepLayerOrder</th>
+                            <th class="col-status" title="keepLayerOrder property - controls visual stacking behavior">Layer Behavior</th>
                         </tr>
                     </thead>
                     <tbody id="layer-visuals-tbody">
@@ -204,8 +232,14 @@
         </div>
 
         <section id="empty-state" class="empty-state hidden">
-            <p>No visual.json files found in the selected folder.</p>
-            <p>Select a PBIR report folder containing visual.json files (e.g., pages or definition folder).</p>
+            <h3>No visuals found</h3>
+            <p>This usually means:</p>
+            <ul>
+                <li>You selected the wrong folder - try selecting the parent folder</li>
+                <li>Your report has no filter or layer settings to manage</li>
+                <li>The report is not in PBIR format (.pbip)</li>
+            </ul>
+            <p><strong>Tip:</strong> Look for a folder containing 'pages' or 'definition' subdirectories.</p>
         </section>
     </div>
 

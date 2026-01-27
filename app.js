@@ -213,24 +213,38 @@ class PBIRVisualManager {
         }
     }
 
-    async collectPageDisplayNames(dirHandle, currentPath) {
+    async collectPageDisplayNames(dirHandle, currentPath, depth = 0) {
+        // Limit recursion depth to prevent stack overflow from circular symlinks
+        const MAX_DEPTH = 50;
+        if (depth >= MAX_DEPTH) {
+            console.warn(`Max directory depth (${MAX_DEPTH}) reached at: ${currentPath}`);
+            return;
+        }
+
         for await (const entry of dirHandle.values()) {
             const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
 
             if (entry.kind === 'directory') {
-                await this.collectPageDisplayNames(entry, entryPath);
+                await this.collectPageDisplayNames(entry, entryPath, depth + 1);
             } else if (entry.kind === 'file' && entry.name === 'page.json') {
                 await this.readPageDisplayName(entry, currentPath);
             }
         }
     }
 
-    async scanForVisuals(dirHandle, currentPath) {
+    async scanForVisuals(dirHandle, currentPath, depth = 0) {
+        // Limit recursion depth to prevent stack overflow from circular symlinks
+        const MAX_DEPTH = 50;
+        if (depth >= MAX_DEPTH) {
+            console.warn(`Max directory depth (${MAX_DEPTH}) reached at: ${currentPath}`);
+            return;
+        }
+
         for await (const entry of dirHandle.values()) {
             const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
 
             if (entry.kind === 'directory') {
-                await this.scanForVisuals(entry, entryPath);
+                await this.scanForVisuals(entry, entryPath, depth + 1);
             } else if (entry.kind === 'file' && entry.name === 'visual.json') {
                 await this.processJsonFile(entry, entryPath);
             }
@@ -249,7 +263,8 @@ class PBIRVisualManager {
                 this.pageDisplayNames.set(pageId, json.displayName);
             }
         } catch (err) {
-            console.log(`Could not read page.json at ${folderPath}: ${err.message}`);
+            // Log to console for debugging, but don't show toast for page.json (non-critical)
+            console.warn(`Could not read page.json at ${folderPath}: ${err.message}`);
         }
     }
 
@@ -308,7 +323,8 @@ class PBIRVisualManager {
 
             this.visuals.push(visual);
         } catch (err) {
-            console.log(`Skipping ${filePath}: ${err.message}`);
+            console.error(`Error parsing ${filePath}:`, err);
+            this.showToast(`Skipped invalid file: ${filePath.split('/').pop()}`, 'error');
         }
     }
 
@@ -552,6 +568,9 @@ class PBIRVisualManager {
         const visual = this.visuals.find(v => v.path === path);
         if (!visual) return;
 
+        // Bounds check for filter index
+        if (filterIndex < 0 || filterIndex >= visual.filters.length) return;
+
         const oldValue = visual.filters[filterIndex].isHiddenInViewMode;
         if (oldValue === newValue) return;
 
@@ -651,6 +670,12 @@ class PBIRVisualManager {
         this.filterElements.setTrueBtn.disabled = !hasSelection;
         this.filterElements.setFalseBtn.disabled = !hasSelection;
         this.filterElements.removePropBtn.disabled = !hasSelection;
+
+        // Update action hint visibility
+        const actionHint = document.getElementById('filter-action-hint');
+        if (actionHint) {
+            actionHint.style.display = hasSelection ? 'none' : 'block';
+        }
     }
 
     updateFilterHeaderCheckbox() {
@@ -716,17 +741,22 @@ class PBIRVisualManager {
 
         const entry = this.filterHistory.pop();
 
-        if (entry.type === 'bulk' && entry.changes) {
+        if (entry.type === 'bulk') {
+            // Validate entry.changes exists and is an array
+            if (!entry.changes || !Array.isArray(entry.changes)) return;
+
             for (const change of entry.changes) {
                 const visual = this.visuals.find(v => v.path === change.visualPath);
-                if (visual && visual.filters[change.filterIndex]) {
+                // Bounds check for filter index
+                if (visual && change.filterIndex >= 0 && change.filterIndex < visual.filters.length) {
                     visual.filters[change.filterIndex].isHiddenInViewMode = change.oldValue;
                     this.applyFilterToJson(visual);
                 }
             }
         } else if (entry.type === 'single') {
             const visual = this.visuals.find(v => v.path === entry.visualPath);
-            if (visual && visual.filters[entry.filterIndex]) {
+            // Bounds check for filter index
+            if (visual && entry.filterIndex >= 0 && entry.filterIndex < visual.filters.length) {
                 visual.filters[entry.filterIndex].isHiddenInViewMode = entry.oldValue;
                 this.applyFilterToJson(visual);
             }
@@ -988,6 +1018,12 @@ class PBIRVisualManager {
         this.layerElements.setTrueBtn.disabled = !hasSelection;
         this.layerElements.setFalseBtn.disabled = !hasSelection;
         this.layerElements.removePropBtn.disabled = !hasSelection;
+
+        // Update action hint visibility
+        const actionHint = document.getElementById('layer-action-hint');
+        if (actionHint) {
+            actionHint.style.display = hasSelection ? 'none' : 'block';
+        }
     }
 
     updateLayerHeaderCheckbox() {
@@ -1082,7 +1118,10 @@ class PBIRVisualManager {
 
         const entry = this.layerHistory.pop();
 
-        if (entry.type === 'bulk' && entry.changes) {
+        if (entry.type === 'bulk') {
+            // Validate entry.changes exists and is an array
+            if (!entry.changes || !Array.isArray(entry.changes)) return;
+
             for (const change of entry.changes) {
                 const visual = this.visuals.find(v => v.path === change.visualPath);
                 if (visual) {
@@ -1214,12 +1253,20 @@ class PBIRVisualManager {
         this.filterElements.saveSection.classList.add('hidden');
         this.filterElements.historySection.classList.add('hidden');
 
+        // Hide filter legend
+        const filterLegend = document.getElementById('filter-legend-section');
+        if (filterLegend) filterLegend.classList.add('hidden');
+
         // Hide layer tab sections
         this.layerElements.summarySection.classList.add('hidden');
         this.layerElements.actionsSection.classList.add('hidden');
         this.layerElements.tableSection.classList.add('hidden');
         this.layerElements.saveSection.classList.add('hidden');
         this.layerElements.historySection.classList.add('hidden');
+
+        // Hide layer legend
+        const layerLegend = document.getElementById('layer-legend-section');
+        if (layerLegend) layerLegend.classList.add('hidden');
 
         this.emptyState.classList.remove('hidden');
     }
@@ -1235,12 +1282,20 @@ class PBIRVisualManager {
         this.filterElements.saveSection.classList.remove('hidden');
         this.filterElements.historySection.classList.remove('hidden');
 
+        // Show filter legend
+        const filterLegend = document.getElementById('filter-legend-section');
+        if (filterLegend) filterLegend.classList.remove('hidden');
+
         // Show layer tab sections
         this.layerElements.summarySection.classList.remove('hidden');
         this.layerElements.actionsSection.classList.remove('hidden');
         this.layerElements.tableSection.classList.remove('hidden');
         this.layerElements.saveSection.classList.remove('hidden');
         this.layerElements.historySection.classList.remove('hidden');
+
+        // Show layer legend
+        const layerLegend = document.getElementById('layer-legend-section');
+        if (layerLegend) layerLegend.classList.remove('hidden');
     }
 
     async saveChanges() {
@@ -1269,9 +1324,20 @@ class PBIRVisualManager {
             this.renderFilterTable();
             this.renderLayerTable();
 
-            this.showToast(`Saved ${modifiedVisuals.length} file(s)`, 'success');
+            this.showToast(`Saved ${modifiedVisuals.length} file(s). Reload your report in Power BI Desktop to see changes.`, 'success');
         } catch (err) {
-            this.showToast('Error saving files: ' + err.message, 'error');
+            // Provide specific error messages based on error type
+            let errorMessage = 'Error saving files: ';
+            if (err.name === 'NotAllowedError') {
+                errorMessage = 'Permission denied. Please grant folder access and try again.';
+            } else if (err.name === 'QuotaExceededError') {
+                errorMessage = 'Disk full. Please free up space and try again.';
+            } else if (err.name === 'NotFoundError') {
+                errorMessage = 'File not found. The file may have been moved or deleted.';
+            } else {
+                errorMessage += err.message;
+            }
+            this.showToast(errorMessage, 'error');
         }
     }
 

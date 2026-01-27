@@ -752,6 +752,72 @@ body {
     margin: 15px 0;
 }
 
+/* Folder Help Text */
+.folder-help {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 0;
+    flex-basis: 100%;
+    margin-top: 10px;
+}
+
+/* Action Hint */
+.action-hint {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin: 10px 0 0 0;
+    font-style: italic;
+}
+
+/* Legend Section */
+.legend-section {
+    padding: 10px 20px;
+    background: var(--card-bg);
+    border-radius: 8px;
+    margin-bottom: 15px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+
+.legend-details summary {
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    padding: 5px 0;
+}
+
+.legend-details summary:hover {
+    color: var(--primary-color);
+}
+
+.legend-grid {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 8px 15px;
+    align-items: center;
+    padding: 10px 0;
+    font-size: 0.85rem;
+}
+
+.legend-grid .status-badge {
+    justify-self: start;
+}
+
+/* Empty State Improvements */
+.empty-state h3 {
+    color: var(--text-color);
+    margin-bottom: 15px;
+}
+
+.empty-state ul {
+    text-align: left;
+    display: inline-block;
+    margin: 10px 0;
+}
+
+.empty-state li {
+    margin-bottom: 8px;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .actions-row {
