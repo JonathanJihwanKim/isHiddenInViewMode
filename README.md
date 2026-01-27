@@ -12,6 +12,35 @@ Free, open-source tool to bulk-manage filter visibility and layer order in Power
 - Undo/redo changes before saving
 - Works directly in your browser (no installation)
 
+## Quick Actions
+
+### Filter Visibility Tab
+| Button | Action |
+|--------|--------|
+| Hide All | Sets all filters to hidden (isHiddenInViewMode = true) |
+| Show All | Sets all filters to visible (isHiddenInViewMode = false) |
+| Reset All | Removes the property, using Power BI defaults |
+| Save Preset | Saves current configuration for reuse |
+
+### Layer Order Tab
+| Button | Action |
+|--------|--------|
+| Lock All | Keeps visuals in their layer position (keepLayerOrder = true) |
+| Unlock All | Allows visuals to move to front on interaction (keepLayerOrder = false) |
+| Reset All | Removes the property, using Power BI defaults |
+| Save Preset | Saves current configuration for reuse |
+
+## Batch Processing
+
+Process multiple PBIR reports simultaneously:
+
+1. Switch to the **Batch Processing** tab
+2. Click **Add Report Folder** to queue multiple reports
+3. Select a preset or configure manual settings
+4. Click **Apply to All Reports**
+
+Ideal for standardizing settings across multiple reports in your organization.
+
 ## Quick Start
 
 1. Open the app in Chrome, Edge, or Opera

@@ -444,6 +444,13 @@
 
                 <h3>Filter Visibility (isHiddenInViewMode)</h3>
                 <p>The <code>isHiddenInViewMode</code> property determines if a filter pane is visible to report viewers. When set to <code>true</code>, the filter is hidden from users but still applies to the data.</p>
+                <h4>Quick Actions</h4>
+                <ul>
+                    <li><strong>Hide All</strong> - Sets all filters to hidden (isHiddenInViewMode = true). Filters will still apply to data but won't be visible to report viewers.</li>
+                    <li><strong>Show All</strong> - Sets all filters to visible (isHiddenInViewMode = false). Report viewers can see and interact with all filters.</li>
+                    <li><strong>Reset All</strong> - Removes the isHiddenInViewMode property from all filters, restoring Power BI's default behavior.</li>
+                    <li><strong>Save Preset</strong> - Saves your current filter visibility configuration as a reusable preset stored in your browser.</li>
+                </ul>
 
                 <h3>Layer Order (keepLayerOrder)</h3>
                 <p>The <code>keepLayerOrder</code> property controls whether visuals maintain their defined z-order (stacking order) during user interactions. This is critical for reports with overlapping elements or layered designs.</p>
@@ -451,6 +458,27 @@
                     <li><strong>Enabled (true)</strong> - Visual maintains its layer position</li>
                     <li><strong>Disabled (false)</strong> - Visual may move to front on interaction</li>
                     <li><strong>Not Set</strong> - Uses Power BI default behavior</li>
+                </ul>
+                <h4>Quick Actions</h4>
+                <ul>
+                    <li><strong>Lock All</strong> - Sets keepLayerOrder = true for all visuals. Visuals maintain their defined z-order during user interactions.</li>
+                    <li><strong>Unlock All</strong> - Sets keepLayerOrder = false for all visuals. Visuals may move to the front when clicked or interacted with.</li>
+                    <li><strong>Reset All</strong> - Removes the keepLayerOrder property from all visuals, restoring Power BI's default behavior.</li>
+                    <li><strong>Save Preset</strong> - Saves your current layer order configuration as a reusable preset stored in your browser.</li>
+                </ul>
+
+                <h3>Batch Processing</h3>
+                <p>Process multiple PBIR reports at once with consistent settings:</p>
+                <ol>
+                    <li><strong>Add Reports</strong> - Click "Add Report Folder" to add PBIR reports to the queue. Each report shows its visual count.</li>
+                    <li><strong>Choose Settings</strong> - Select a preset (e.g., Hide All Filters, Lock All Layers) or configure manual settings.</li>
+                    <li><strong>Process All</strong> - Click "Apply to All Reports" to process the entire queue. Progress and results are shown in real-time.</li>
+                </ol>
+                <p><strong>Use Cases:</strong></p>
+                <ul>
+                    <li>Standardize filter visibility across multiple reports</li>
+                    <li>Apply consistent layer order settings to a report portfolio</li>
+                    <li>Quickly prepare multiple reports for deployment</li>
                 </ul>
 
                 <h3>Requirements</h3>
