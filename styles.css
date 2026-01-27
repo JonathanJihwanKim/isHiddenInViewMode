@@ -831,13 +831,13 @@ body {
 
 /* Sponsor Sidebar */
 .sponsor-sidebar {
-    width: 200px;
-    padding: 20px 15px;
+    width: 160px;
+    padding: 15px 10px;
     background: var(--card-bg);
     border-left: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 12px;
 }
 
 .sponsor-header {
@@ -849,7 +849,7 @@ body {
 }
 
 .sponsor-placeholder {
-    padding: 20px 15px;
+    padding: 15px 10px;
     background: var(--bg-color);
     border-radius: 8px;
     text-align: center;
@@ -859,7 +859,7 @@ body {
 .sponsor-empty {
     color: var(--text-muted);
     font-size: 0.9rem;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
 }
 
 .btn-sponsor {
@@ -897,13 +897,13 @@ body {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 25px;
+    padding: 8px 20px;
     background: #f1f3f5;
     border-top: 1px solid var(--border-color);
-    font-size: 0.85rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 6px;
 }
 
 .footer-left,
@@ -911,7 +911,7 @@ body {
 .footer-right {
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 4px;
 }
 
 .footer-separator {
@@ -935,8 +935,8 @@ body {
 .linkedin-link {
     display: flex;
     align-items: center;
-    gap: 5px;
-    padding: 6px 12px;
+    gap: 4px;
+    padding: 4px 10px;
     background: #0077b5;
     color: white !important;
     border-radius: 4px;
@@ -949,8 +949,8 @@ body {
 }
 
 .linkedin-icon {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
 }
 
 /* Responsive */
