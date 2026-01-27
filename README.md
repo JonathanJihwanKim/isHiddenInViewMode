@@ -1,5 +1,10 @@
 # PBIR Visual Manager
 
+[![GitHub stars](https://img.shields.io/github/stars/JonathanJihwanKim/isHiddenInViewMode?style=social)](https://github.com/JonathanJihwanKim/isHiddenInViewMode/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/JonathanJihwanKim/isHiddenInViewMode?style=social)](https://github.com/JonathanJihwanKim/isHiddenInViewMode/network/members)
+![Visitors](https://visitor-badge.laobi.icu/badge?page_id=JonathanJihwanKim.isHiddenInViewMode)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **[Launch the App](https://jonathanjihwankim.github.io/isHiddenInViewMode/)**
 
 Free, open-source tool to bulk-manage filter visibility and layer order in Power BI PBIR reports.
