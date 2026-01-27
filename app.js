@@ -19,9 +19,24 @@ class PBIRVisualManager {
         this.layerSelectedVisuals = new Set();
         this.layerCurrentFilter = 'all';
 
+        // Pro features state
+        this.isProUser = false; // Will be set based on license validation
+
+        // Presets state
+        this.presets = this.loadPresets();
+        this.builtInPresets = [
+            { id: 'hide-all-filters', name: 'Hide All Filters', type: 'filter', value: true },
+            { id: 'show-all-filters', name: 'Show All Filters', type: 'filter', value: false },
+            { id: 'reset-all-filters', name: 'Reset All Filters', type: 'filter', value: undefined },
+            { id: 'lock-all-layers', name: 'Lock All Layers', type: 'layer', value: true },
+            { id: 'unlock-all-layers', name: 'Unlock All Layers', type: 'layer', value: false },
+            { id: 'reset-all-layers', name: 'Reset All Layers', type: 'layer', value: undefined }
+        ];
+
         this.initElements();
         this.checkBrowserSupport();
         this.bindEvents();
+        this.renderPresetDropdowns();
     }
 
     initElements() {

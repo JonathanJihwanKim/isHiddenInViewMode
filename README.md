@@ -1,28 +1,30 @@
 # PBIR Visual Manager
 
-Bulk-manage filter visibility and layer order across Power BI PBIR reports - no more clicking through every visual one by one.
+**[Launch the App](https://jonathanjihwankim.github.io/isHiddenInViewMode/)**
 
-## What It Does
+Free, open-source tool to bulk-manage filter visibility and layer order in Power BI PBIR reports.
 
-- **Filter Visibility** - Control whether filters are hidden or visible to report viewers (`isHiddenInViewMode`)
-- **Layer Order** - Control whether visuals maintain their z-order during interactions (`keepLayerOrder`)
-- **Bulk Operations** - Select multiple visuals and apply changes at once
-- **Export** - Export settings to CSV or JSON for documentation
+## Features
+
+- Manage `isHiddenInViewMode` for all filters at once
+- Control `keepLayerOrder` across visuals
+- Export settings to CSV/JSON
+- Undo/redo changes before saving
+- Works directly in your browser (no installation)
 
 ## Quick Start
 
-1. Open `index.html` in Chrome, Edge, or Opera
+1. Open the app in Chrome, Edge, or Opera
 2. Click **Select Folder** and choose your PBIR report folder
-3. Select visuals using checkboxes
-4. Apply changes (Hidden/Visible for filters, Enabled/Disabled for layer order)
-5. Click **Save Changes**
+3. Select visuals and apply changes
+4. Click **Save Changes**
 
-> **Need help?** Click the manual icon (📖) in the app header for detailed documentation.
+> **Need help?** Click the manual icon in the app header for detailed documentation.
 
 ## Requirements
 
 - **Browser:** Chrome, Edge, or Opera (requires File System Access API)
-- **Report Format:** Your Power BI report MUST be saved in PBIR format (.pbip)
+- **Report Format:** Power BI PBIR format (.pbip)
 
 ### How to Enable PBIR Format
 
@@ -31,14 +33,6 @@ Bulk-manage filter visibility and layer order across Power BI PBIR reports - no 
 3. Select **Preview features**
 4. Enable **Power BI Project (.pbip) save option**
 5. Save your report as a `.pbip` file
-
-## Beta Testing
-
-We're looking for feedback from Power BI developers! If you find bugs, have feature ideas, or want to share your experience, please submit a GitHub Issue:
-
-- [Report a Bug](../../issues/new?template=bug_report.md)
-- [Request a Feature](../../issues/new?template=feature_request.md)
-- [Share Feedback](../../issues/new?template=feedback.md)
 
 ## Status Meanings
 
@@ -64,6 +58,21 @@ We're looking for feedback from Power BI developers! If you find bugs, have feat
 - Expand visual rows in Filter Visibility tab to control individual filters
 - Filter by status using the dropdown to find specific visuals
 
+## About the Creator
+
+**Jihwan Kim** - Power BI Developer & Data Model Architect
+
+- [LinkedIn](https://www.linkedin.com/in/jihwankim1975/)
+- [GitHub](https://github.com/JonathanJihwanKim)
+
 ## License
 
-MIT
+MIT License - Free to use, modify, and distribute.
+
+## Sponsors
+
+Interested in sponsoring this project? [Contact me on LinkedIn](https://www.linkedin.com/in/jihwankim1975/)
+
+## Contributing
+
+Found a bug or have a feature idea? Please [open an issue](https://github.com/JonathanJihwanKim/isHiddenInViewMode/issues/new).
