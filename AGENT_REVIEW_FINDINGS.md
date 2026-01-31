@@ -646,13 +646,19 @@ Added "Refresh" button next to folder selector:
 
 ## REMAINING HIGH PRIORITY ITEMS
 
+**Last Updated:** 2026-01-31
+
 | # | Title | Status |
 |---|-------|--------|
-| 1 | Unsafe array index access | Not started |
-| 2 | Missing JSON.parse error feedback | Not started |
-| 3 | XSS risk via innerHTML | Not started |
-| 4 | Missing permission error differentiation | Not started |
+| 1 | Unsafe array index access | ✅ Fixed (bounds checking at lines 964-965, 1143-1152) |
+| 2 | Missing JSON.parse error feedback | ✅ Fixed (toast notification added in readPageDisplayName) |
+| 3 | XSS risk via innerHTML | ✅ Fixed (escapeHtml() applied to data-path attributes) |
+| 4 | Missing permission error differentiation | ✅ Fixed (error type handling at lines 1753-1766) |
 | 6 | Unbounded directory recursion | ✅ Fixed (MAX_DEPTH = 50 added) |
 | 12 | No folder selection guidance | ✅ Fixed (help text added) |
-| 13 | Empty state message too technical | Not started |
-| 23 | CLI for CI/CD integration | Not started |
+| 13 | Empty state message too technical | ✅ Fixed (user-friendly message in empty-state section) |
+| 23 | CLI for CI/CD integration | Not started (Feature request) |
+
+### GitHub Issues Created
+- [Issue #19](https://github.com/JonathanJihwanKim/isHiddenInViewMode/issues/19) - Missing JSON.parse error feedback
+- [Issue #20](https://github.com/JonathanJihwanKim/isHiddenInViewMode/issues/20) - Minor XSS risk in data-path attributes

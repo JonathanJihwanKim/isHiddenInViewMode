@@ -558,8 +558,13 @@ class PBIRVisualManager {
                 modified: false
             });
         } catch (err) {
-            // Log to console for debugging, but don't show toast for page.json (non-critical)
+            // Log to console for debugging
             console.warn(`Could not read page.json at ${folderPath}: ${err.message}`);
+            // Show user feedback for JSON parse errors (malformed files)
+            if (err instanceof SyntaxError) {
+                const folderName = folderPath.split('/').pop() || folderPath;
+                this.showToast(`Invalid JSON in page.json: ${folderName}`, 'error');
+            }
         }
     }
 
@@ -849,11 +854,11 @@ class PBIRVisualManager {
 
             row.innerHTML = `
                 <td class="col-checkbox">
-                    <input type="checkbox" class="visual-checkbox" data-path="${visual.path}" ${isSelected ? 'checked' : ''}>
+                    <input type="checkbox" class="visual-checkbox" data-path="${this.escapeHtml(visual.path)}" ${isSelected ? 'checked' : ''}>
                 </td>
                 <td class="col-expand">
                     ${visual.filters.length > 0 ?
-                        `<button class="expand-btn" data-path="${visual.path}">&#9654;</button>` :
+                        `<button class="expand-btn" data-path="${this.escapeHtml(visual.path)}">&#9654;</button>` :
                         ''}
                 </td>
                 <td class="col-page" title="${this.escapeHtml(visual.path)}">${this.escapeHtml(visual.pageDisplayName)}</td>
@@ -910,7 +915,7 @@ class PBIRVisualManager {
                     <td>${this.escapeHtml(filter.field)}</td>
                     <td>${this.escapeHtml(filter.type)}</td>
                     <td>
-                        <select class="filter-status-select" data-path="${path}" data-index="${i}">
+                        <select class="filter-status-select" data-path="${this.escapeHtml(path)}" data-index="${i}">
                             <option value="undefined" ${currentValue === undefined ? 'selected' : ''}>Default (not set)</option>
                             <option value="true" ${currentValue === true ? 'selected' : ''}>Hidden (true)</option>
                             <option value="false" ${currentValue === false ? 'selected' : ''}>Visible (false)</option>
@@ -1343,7 +1348,7 @@ class PBIRVisualManager {
 
             row.innerHTML = `
                 <td class="col-checkbox">
-                    <input type="checkbox" class="layer-checkbox" data-path="${visual.path}" ${isSelected ? 'checked' : ''}>
+                    <input type="checkbox" class="layer-checkbox" data-path="${this.escapeHtml(visual.path)}" ${isSelected ? 'checked' : ''}>
                 </td>
                 <td class="col-page" title="${this.escapeHtml(visual.path)}">${this.escapeHtml(visual.pageDisplayName)}</td>
                 <td class="col-visual" title="${this.escapeHtml(visual.visualId)}">${this.escapeHtml(visual.visualName || visual.visualId)}</td>
