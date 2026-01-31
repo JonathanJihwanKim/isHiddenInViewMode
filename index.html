@@ -7,18 +7,82 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Left Sidebar Navigation -->
+    <aside class="left-sidebar" id="left-sidebar">
+        <div class="sidebar-header">
+            <img src="Power-BI.png" alt="Power BI" class="sidebar-logo">
+            <span class="sidebar-title">PBIR</span>
+            <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse sidebar">
+                <span class="collapse-icon">◀</span>
+            </button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <button class="sidebar-nav-btn active" data-tab="filter-visibility" title="Filter Visibility">
+                <span class="nav-icon">👁️</span>
+                <span class="nav-label">Filter Visibility</span>
+            </button>
+            <button class="sidebar-nav-btn" data-tab="layer-order" title="Layer Order">
+                <span class="nav-icon">📚</span>
+                <span class="nav-label">Layer Order</span>
+            </button>
+            <button class="sidebar-nav-btn" data-tab="visual-interactions" title="Visual Interactions">
+                <span class="nav-icon">🔗</span>
+                <span class="nav-label">Visual Interactions</span>
+            </button>
+            <button class="sidebar-nav-btn" data-tab="batch-processing" title="Batch Processing">
+                <span class="nav-icon">⚡</span>
+                <span class="nav-label">Batch Processing</span>
+            </button>
+        </nav>
+
+        <div class="sidebar-divider"></div>
+
+        <div class="sidebar-quick-actions" id="sidebar-quick-actions">
+            <div class="quick-actions-header">
+                <span class="quick-actions-title">Quick Actions</span>
+            </div>
+            <div class="quick-actions-list" id="quick-actions-list">
+                <!-- Populated dynamically based on active tab -->
+            </div>
+        </div>
+
+        <div class="sidebar-divider"></div>
+
+        <!-- Report Structure Tree (shown when folder is loaded) -->
+        <div class="sidebar-report-tree hidden" id="sidebar-report-tree">
+            <div class="report-tree-header">
+                <span class="tree-title">Report Structure</span>
+            </div>
+            <div class="report-tree-content" id="report-tree-content">
+                <!-- Populated when folder is loaded -->
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <button class="theme-toggle-btn" id="theme-toggle" title="Switch to light mode">
+                <span class="theme-icon">☀️</span>
+                <span class="theme-label">Light Mode</span>
+            </button>
+        </div>
+    </aside>
+
     <div class="main-layout">
     <div class="app-container">
         <header class="app-header">
             <div class="header-left">
-                <img src="Power-BI.png" alt="Power BI" class="logo-icon">
-                <span class="logo-text">pbir</span>
+                <button class="mobile-menu-btn" id="mobile-menu-btn" title="Open menu">
+                    <span>☰</span>
+                </button>
+                <h1 class="header-title">PBIR Visual Manager</h1>
             </div>
             <div class="header-center">
-                <h1>PBIR Visual Manager</h1>
                 <p class="subtitle">Manage visual properties in Power BI PBIR reports</p>
             </div>
             <div class="header-right">
+                <button id="theme-toggle-header" class="theme-toggle-header" title="Toggle theme">
+                    <span class="theme-icon">☀️</span>
+                </button>
                 <button id="manual-btn" class="manual-btn" title="Documentation">
                     <img src="manual.png" alt="Manual" class="manual-icon">
                 </button>
@@ -36,7 +100,59 @@
             <p class="folder-help">Select the root folder of your PBIR report (the folder containing 'pages' or 'definition' subdirectories)</p>
         </section>
 
-        <!-- Tab Navigation -->
+        <!-- Welcome Dashboard (shown when no folder is selected) -->
+        <section id="welcome-dashboard" class="welcome-dashboard">
+            <div class="welcome-hero">
+                <h2 class="welcome-title">Welcome to PBIR Visual Manager</h2>
+                <p class="welcome-subtitle">Your toolkit for managing visual properties in Power BI PBIR reports</p>
+            </div>
+
+            <div class="feature-cards">
+                <div class="feature-card" data-feature="filter-visibility">
+                    <div class="feature-icon">👁️</div>
+                    <h3 class="feature-title">Filter Visibility</h3>
+                    <p class="feature-description">Control which filters viewers can see in your reports. Hide sensitive filters while keeping them active.</p>
+                </div>
+
+                <div class="feature-card" data-feature="layer-order">
+                    <div class="feature-icon">📚</div>
+                    <h3 class="feature-title">Layer Order</h3>
+                    <p class="feature-description">Manage visual stacking behavior during interactions. Keep visuals in their defined z-order.</p>
+                </div>
+
+                <div class="feature-card" data-feature="visual-interactions">
+                    <div class="feature-icon">🔗</div>
+                    <h3 class="feature-title">Visual Interactions</h3>
+                    <p class="feature-description">Define how visuals filter and highlight each other. Create precise cross-filtering experiences.</p>
+                </div>
+
+                <div class="feature-card" data-feature="batch-processing">
+                    <div class="feature-icon">⚡</div>
+                    <h3 class="feature-title">Batch Processing</h3>
+                    <p class="feature-description">Apply settings across multiple reports at once. Save time with bulk operations.</p>
+                </div>
+            </div>
+
+            <div class="welcome-cta">
+                <p class="cta-text">Get started by selecting your PBIR report folder</p>
+                <button class="btn btn-primary btn-large cta-button" id="welcome-select-folder">
+                    <span class="btn-icon">📂</span> Select Report Folder
+                </button>
+            </div>
+
+            <div class="welcome-requirements">
+                <details>
+                    <summary>Requirements</summary>
+                    <ul>
+                        <li>Power BI report saved in <strong>PBIR format</strong> (.pbip file)</li>
+                        <li>Chrome, Edge, or Opera browser</li>
+                        <li>File System Access API support</li>
+                    </ul>
+                </details>
+            </div>
+        </section>
+
+        <!-- Tab Navigation (hidden - tabs moved to sidebar) -->
         <div id="tab-navigation" class="tab-navigation hidden">
             <button class="tab-btn active" data-tab="filter-visibility">Filter Visibility</button>
             <button class="tab-btn" data-tab="layer-order">Layer Order</button>

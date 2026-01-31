@@ -54,6 +54,7 @@ class PBIRVisualManager {
         this.checkBrowserSupport();
         this.bindEvents();
         this.renderCustomPresets();
+        this.initTheme();
     }
 
     initElements() {
@@ -73,6 +74,18 @@ class PBIRVisualManager {
         this.docModal = document.getElementById('doc-modal');
         this.manualBtn = document.getElementById('manual-btn');
         this.closeModalBtn = document.getElementById('close-modal-btn');
+
+        // Sidebar elements
+        this.leftSidebar = document.getElementById('left-sidebar');
+        this.sidebarCollapseBtn = document.getElementById('sidebar-collapse-btn');
+        this.mobileMenuBtn = document.getElementById('mobile-menu-btn');
+        this.quickActionsList = document.getElementById('quick-actions-list');
+        this.reportTreeContent = document.getElementById('report-tree-content');
+        this.sidebarReportTree = document.getElementById('sidebar-report-tree');
+
+        // Welcome dashboard
+        this.welcomeDashboard = document.getElementById('welcome-dashboard');
+        this.welcomeSelectFolderBtn = document.getElementById('welcome-select-folder');
 
         // Filter Visibility tab elements
         this.filterElements = {
@@ -231,7 +244,51 @@ class PBIRVisualManager {
         this.selectFolderBtn.addEventListener('click', () => this.selectFolder());
         this.refreshBtn.addEventListener('click', () => this.refreshData());
 
-        // Tab switching
+        // Welcome dashboard select folder button
+        if (this.welcomeSelectFolderBtn) {
+            this.welcomeSelectFolderBtn.addEventListener('click', () => this.selectFolder());
+        }
+
+        // Sidebar collapse toggle
+        if (this.sidebarCollapseBtn) {
+            this.sidebarCollapseBtn.addEventListener('click', () => this.toggleSidebar());
+        }
+
+        // Mobile menu toggle
+        if (this.mobileMenuBtn) {
+            this.mobileMenuBtn.addEventListener('click', () => this.toggleMobileSidebar());
+        }
+
+        // Sidebar navigation
+        document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.switchTab(btn.dataset.tab);
+                this.updateSidebarNav(btn.dataset.tab);
+                // Close mobile sidebar after selection
+                if (window.innerWidth <= 992) {
+                    this.closeMobileSidebar();
+                }
+            });
+        });
+
+        // Feature cards click to switch tab
+        document.querySelectorAll('.feature-card').forEach(card => {
+            card.addEventListener('click', () => {
+                const feature = card.dataset.feature;
+                if (feature) {
+                    this.switchTab(feature);
+                    this.updateSidebarNav(feature);
+                }
+            });
+        });
+
+        // Theme toggle from header
+        const themeToggleHeader = document.getElementById('theme-toggle-header');
+        if (themeToggleHeader) {
+            themeToggleHeader.addEventListener('click', () => this.toggleTheme());
+        }
+
+        // Tab switching (legacy horizontal tabs)
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
         });
@@ -1644,6 +1701,12 @@ class PBIRVisualManager {
         this.tabNavigation.classList.add('hidden');
         this.refreshBtn.classList.add('hidden');
 
+        // Show welcome dashboard, hide report tree
+        this.showWelcomeDashboard();
+        if (this.sidebarReportTree) {
+            this.sidebarReportTree.classList.add('hidden');
+        }
+
         // Hide filter tab sections
         this.filterElements.summarySection.classList.add('hidden');
         this.filterElements.actionsSection.classList.add('hidden');
@@ -1688,6 +1751,10 @@ class PBIRVisualManager {
     showContent() {
         this.emptyState.classList.add('hidden');
         this.tabNavigation.classList.remove('hidden');
+
+        // Hide welcome dashboard, show report tree
+        this.hideWelcomeDashboard();
+        this.renderReportTree();
 
         // Show filter tab sections
         this.filterElements.summarySection.classList.remove('hidden');
@@ -3178,6 +3245,188 @@ class PBIRVisualManager {
         this.interactionsSelectedCells.clear();
         this.renderInteractionsView();
         this.updateInteractionsSelectionButtons();
+    }
+
+    // ==================== Sidebar Management ====================
+
+    toggleSidebar() {
+        const sidebar = this.leftSidebar;
+        const isCollapsed = sidebar.classList.toggle('collapsed');
+        document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+        localStorage.setItem('pbir-sidebar-collapsed', isCollapsed);
+    }
+
+    toggleMobileSidebar() {
+        this.leftSidebar.classList.toggle('open');
+    }
+
+    closeMobileSidebar() {
+        this.leftSidebar.classList.remove('open');
+    }
+
+    updateSidebarNav(tabId) {
+        // Update active state in sidebar nav
+        document.querySelectorAll('.sidebar-nav-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabId);
+        });
+
+        // Update quick actions based on active tab
+        this.updateQuickActions(tabId);
+    }
+
+    updateQuickActions(tabId) {
+        const quickActionsMap = {
+            'filter-visibility': [
+                { icon: '👁️‍🗨️', label: 'Hide All', preset: 'hide-all-filters' },
+                { icon: '👁️', label: 'Show All', preset: 'show-all-filters' },
+                { icon: '↩️', label: 'Reset All', preset: 'reset-all-filters' }
+            ],
+            'layer-order': [
+                { icon: '🔒', label: 'Lock All', preset: 'lock-all-layers' },
+                { icon: '🔓', label: 'Unlock All', preset: 'unlock-all-layers' },
+                { icon: '↩️', label: 'Reset All', preset: 'reset-all-layers' }
+            ],
+            'visual-interactions': [
+                { icon: '🚫', label: 'Disable All', preset: 'disable-all-interactions' },
+                { icon: '✅', label: 'Enable All', preset: 'enable-all-interactions' },
+                { icon: '🔍', label: 'All Filter', preset: 'filter-all-interactions' },
+                { icon: '💡', label: 'All Highlight', preset: 'highlight-all-interactions' }
+            ],
+            'batch-processing': []
+        };
+
+        const actions = quickActionsMap[tabId] || [];
+
+        if (!this.quickActionsList) return;
+
+        if (actions.length === 0) {
+            this.quickActionsList.innerHTML = '<div class="quick-actions-empty">No quick actions for this tab</div>';
+            return;
+        }
+
+        this.quickActionsList.innerHTML = actions.map(action => `
+            <button class="quick-action-btn" data-preset="${action.preset}" title="${action.label}">
+                <span class="quick-action-icon">${action.icon}</span>
+                <span class="quick-action-label">${action.label}</span>
+            </button>
+        `).join('');
+
+        // Bind click events
+        this.quickActionsList.querySelectorAll('.quick-action-btn').forEach(btn => {
+            btn.addEventListener('click', () => this.applyPreset(btn.dataset.preset));
+        });
+    }
+
+    renderReportTree() {
+        if (!this.reportTreeContent || !this.sidebarReportTree) return;
+
+        if (!this.folderHandle || this.pages.length === 0) {
+            this.sidebarReportTree.classList.add('hidden');
+            return;
+        }
+
+        this.sidebarReportTree.classList.remove('hidden');
+
+        // Group visuals by page
+        const pageMap = new Map();
+        this.visuals.forEach(v => {
+            const pageKey = v.pagePath || 'Unknown';
+            const pageName = this.pageDisplayNames.get(pageKey) || pageKey;
+            if (!pageMap.has(pageName)) {
+                pageMap.set(pageName, []);
+            }
+            pageMap.get(pageName).push(v);
+        });
+
+        let treeHtml = '';
+        pageMap.forEach((visuals, pageName) => {
+            const visualCount = visuals.length;
+            treeHtml += `
+                <div class="tree-node tree-page" data-page="${pageName}">
+                    <span class="tree-node-icon">📄</span>
+                    ${pageName}
+                    <span class="tree-count">(${visualCount})</span>
+                </div>
+            `;
+        });
+
+        this.reportTreeContent.innerHTML = treeHtml || '<div class="tree-empty">No pages found</div>';
+
+        // Add click handlers for tree nodes
+        this.reportTreeContent.querySelectorAll('.tree-page').forEach(node => {
+            node.addEventListener('click', () => {
+                // Could filter to show only this page's visuals
+                document.querySelectorAll('.tree-node').forEach(n => n.classList.remove('active'));
+                node.classList.add('active');
+            });
+        });
+    }
+
+    showWelcomeDashboard() {
+        if (this.welcomeDashboard) {
+            this.welcomeDashboard.classList.remove('hidden');
+        }
+    }
+
+    hideWelcomeDashboard() {
+        if (this.welcomeDashboard) {
+            this.welcomeDashboard.classList.add('hidden');
+        }
+    }
+
+    // ==================== Theme Management ====================
+
+    initTheme() {
+        // Get saved theme or default to dark
+        const savedTheme = localStorage.getItem('pbir-theme') || 'dark';
+        this.setTheme(savedTheme);
+
+        // Restore sidebar collapsed state
+        const sidebarCollapsed = localStorage.getItem('pbir-sidebar-collapsed') === 'true';
+        if (sidebarCollapsed && this.leftSidebar) {
+            this.leftSidebar.classList.add('collapsed');
+            document.body.classList.add('sidebar-collapsed');
+        }
+
+        // Set up sidebar theme toggle button
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => this.toggleTheme());
+        }
+
+        // Initialize quick actions for default tab
+        this.updateQuickActions(this.activeTab);
+    }
+
+    setTheme(theme) {
+        this.currentTheme = theme;
+        document.documentElement.setAttribute('data-theme', theme);
+        localStorage.setItem('pbir-theme', theme);
+
+        // Update all theme toggle buttons
+        const themeToggles = [
+            document.getElementById('theme-toggle'),
+            document.getElementById('theme-toggle-header')
+        ];
+
+        themeToggles.forEach(toggle => {
+            if (toggle) {
+                const icon = toggle.querySelector('.theme-icon');
+                if (icon) {
+                    icon.textContent = theme === 'dark' ? '☀️' : '🌙';
+                }
+                const label = toggle.querySelector('.theme-label');
+                if (label) {
+                    label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
+                }
+                toggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
+            }
+        });
+    }
+
+    toggleTheme() {
+        const newTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
+        this.setTheme(newTheme);
     }
 }
 
