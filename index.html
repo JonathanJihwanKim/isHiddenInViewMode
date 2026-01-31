@@ -31,6 +31,7 @@
 
         <section class="folder-section">
             <button id="select-folder-btn" class="btn btn-primary">Select Folder</button>
+            <button id="refresh-btn" class="btn btn-secondary hidden" title="Reload data from folder">&#8635; Refresh</button>
             <span id="folder-path" class="folder-path">No folder selected</span>
             <p class="folder-help">Select the root folder of your PBIR report (the folder containing 'pages' or 'definition' subdirectories)</p>
         </section>
@@ -39,6 +40,7 @@
         <div id="tab-navigation" class="tab-navigation hidden">
             <button class="tab-btn active" data-tab="filter-visibility">Filter Visibility</button>
             <button class="tab-btn" data-tab="layer-order">Layer Order</button>
+            <button class="tab-btn" data-tab="visual-interactions">Visual Interactions</button>
             <button class="tab-btn" data-tab="batch-processing">Batch Processing</button>
         </div>
 
@@ -78,6 +80,21 @@
                         <span class="status-badge status-mixed">Mixed</span><span>Filters have different settings</span>
                     </div>
                 </details>
+            </section>
+
+            <!-- Visual Naming Alert for Filter Tab -->
+            <section id="filter-naming-alert" class="naming-alert-section hidden">
+                <div class="alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong><span id="filter-unnamed-count">0</span> visuals have no title</strong>
+                        <p>Consider adding titles in Power BI Desktop for easier identification.</p>
+                        <details>
+                            <summary>Show unnamed visuals</summary>
+                            <ul id="filter-unnamed-list" class="unnamed-list"></ul>
+                        </details>
+                    </div>
+                </div>
             </section>
 
             <!-- Filter Presets Section -->
@@ -199,6 +216,21 @@
                 </details>
             </section>
 
+            <!-- Visual Naming Alert for Layer Tab -->
+            <section id="layer-naming-alert" class="naming-alert-section hidden">
+                <div class="alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong><span id="layer-unnamed-count">0</span> visuals have no title</strong>
+                        <p>Consider adding titles in Power BI Desktop for easier identification.</p>
+                        <details>
+                            <summary>Show unnamed visuals</summary>
+                            <ul id="layer-unnamed-list" class="unnamed-list"></ul>
+                        </details>
+                    </div>
+                </div>
+            </section>
+
             <!-- Layer Order Presets Section -->
             <section id="layer-presets-section" class="presets-section hidden">
                 <div class="presets-header">
@@ -281,6 +313,145 @@
             </section>
         </div>
 
+        <!-- Visual Interactions Tab -->
+        <div id="tab-visual-interactions" class="tab-content hidden">
+            <!-- Page Selector -->
+            <section id="interactions-page-section" class="page-selector-section hidden">
+                <div class="page-selector-row">
+                    <label for="interactions-page-select">Select Page:</label>
+                    <select id="interactions-page-select"></select>
+                </div>
+            </section>
+
+            <!-- Summary Section -->
+            <section id="interactions-summary-section" class="summary-section hidden">
+                <div class="summary-item">
+                    <span class="summary-value" id="interactions-total">0</span>
+                    <span class="summary-label">Possible</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="interactions-explicit">0</span>
+                    <span class="summary-label">Overrides</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="interactions-default">0</span>
+                    <span class="summary-label">Default</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="interactions-nofilter">0</span>
+                    <span class="summary-label">None</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="interactions-datafilter">0</span>
+                    <span class="summary-label">Filter</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-value" id="interactions-highlightfilter">0</span>
+                    <span class="summary-label">Highlight</span>
+                </div>
+            </section>
+
+            <!-- Visual Naming Alert -->
+            <section id="interactions-naming-alert" class="naming-alert-section hidden">
+                <div class="alert-warning">
+                    <span class="alert-icon">&#9888;</span>
+                    <div class="alert-content">
+                        <strong><span id="interactions-unnamed-count">0</span> visuals have no name</strong>
+                        <p>Consider adding titles in Power BI Desktop for easier identification.</p>
+                        <details>
+                            <summary>Show unnamed visuals</summary>
+                            <ul id="interactions-unnamed-list" class="unnamed-list"></ul>
+                        </details>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Status Legend -->
+            <section id="interactions-legend-section" class="legend-section hidden">
+                <details class="legend-details">
+                    <summary>Interaction Types</summary>
+                    <div class="legend-grid interactions-legend">
+                        <span class="interaction-badge interaction-default">&#9898; Default</span><span>Power BI determines behavior</span>
+                        <span class="interaction-badge interaction-filter">&#128269; Filter</span><span>Selection filters target visual</span>
+                        <span class="interaction-badge interaction-highlight">&#128161; Highlight</span><span>Selection highlights in target</span>
+                        <span class="interaction-badge interaction-none">&#10060; None</span><span>Selection is ignored</span>
+                    </div>
+                </details>
+            </section>
+
+            <!-- Quick Actions -->
+            <section id="interactions-presets-section" class="presets-section hidden">
+                <div class="presets-header">
+                    <span class="presets-title">Quick Actions</span>
+                </div>
+                <div class="presets-grid">
+                    <button class="preset-btn" data-preset="disable-all-interactions" title="Set all interactions to None">
+                        <span class="preset-icon">&#10060;</span> Disable All
+                    </button>
+                    <button class="preset-btn" data-preset="enable-all-interactions" title="Reset all to default behavior">
+                        <span class="preset-icon">&#9898;</span> Enable All
+                    </button>
+                    <button class="preset-btn" data-preset="filter-all-interactions" title="Set all interactions to Filter">
+                        <span class="preset-icon">&#128269;</span> All Filter
+                    </button>
+                    <button class="preset-btn" data-preset="highlight-all-interactions" title="Set all interactions to Highlight">
+                        <span class="preset-icon">&#128161;</span> All Highlight
+                    </button>
+                </div>
+            </section>
+
+            <!-- View Toggle -->
+            <section id="interactions-view-section" class="view-toggle-section hidden">
+                <div class="view-toggle">
+                    <button id="interactions-view-matrix-btn" class="view-btn active" data-view="matrix">&#8862; Matrix</button>
+                    <button id="interactions-view-list-btn" class="view-btn" data-view="list">&#9776; List</button>
+                    <span id="interactions-view-hint" class="view-hint"></span>
+                </div>
+            </section>
+
+            <!-- Actions Section -->
+            <section id="interactions-actions-section" class="actions-section hidden">
+                <div class="actions-row">
+                    <div class="selection-actions">
+                        <button id="interactions-select-all-btn" class="btn btn-secondary">Select All</button>
+                        <button id="interactions-select-none-btn" class="btn btn-secondary">Select None</button>
+                    </div>
+                    <div class="bulk-actions">
+                        <button id="interactions-set-none-btn" class="btn btn-action interactions-bulk-btn" disabled title="Set selected to None (Ctrl+Click cells to select)">Set None</button>
+                        <button id="interactions-set-filter-btn" class="btn btn-action interactions-bulk-btn" disabled title="Set selected to Filter">Set Filter</button>
+                        <button id="interactions-set-highlight-btn" class="btn btn-action interactions-bulk-btn" disabled title="Set selected to Highlight">Set Highlight</button>
+                        <button id="interactions-reset-btn" class="btn btn-action interactions-bulk-btn" disabled title="Reset selected to default">Reset</button>
+                    </div>
+                    <p class="action-hint" id="interactions-action-hint">Ctrl+Click cells to select, then use bulk actions</p>
+                </div>
+            </section>
+
+            <!-- Matrix/List Container -->
+            <section id="interactions-matrix-section" class="matrix-section hidden">
+                <div id="interactions-matrix-container" class="interaction-matrix-container"></div>
+                <div id="interactions-list-container" class="interaction-list-container hidden"></div>
+            </section>
+
+            <!-- Save Section -->
+            <section id="interactions-save-section" class="save-section hidden">
+                <div class="save-row">
+                    <button id="interactions-save-btn" class="btn btn-primary" disabled>Save Changes</button>
+                    <span id="interactions-modified-status" class="modified-status">No changes</span>
+                </div>
+            </section>
+
+            <!-- History Section -->
+            <section id="interactions-history-section" class="history-section hidden">
+                <div class="history-row">
+                    <button id="interactions-undo-btn" class="btn btn-secondary" disabled>Undo</button>
+                    <button id="interactions-undo-all-btn" class="btn btn-secondary" disabled>Undo All</button>
+                    <button id="interactions-export-csv-btn" class="btn btn-secondary">Export CSV</button>
+                    <button id="interactions-export-json-btn" class="btn btn-secondary">Export JSON</button>
+                    <span id="interactions-history-status" class="history-status">History: 0 changes</span>
+                </div>
+            </section>
+        </div>
+
         <!-- Batch Processing Tab -->
         <div id="tab-batch-processing" class="tab-content hidden">
             <section id="batch-intro-section" class="batch-intro-section">
@@ -314,8 +485,15 @@
                             <option value="unlock-all-layers">Unlock All Layers</option>
                             <option value="reset-all-layers">Reset All Layers</option>
                         </optgroup>
+                        <optgroup label="Visual Interactions">
+                            <option value="disable-all-interactions">Disable All Interactions</option>
+                            <option value="enable-all-interactions">Enable All (Default)</option>
+                            <option value="filter-all-interactions">Set All to Filter</option>
+                            <option value="highlight-all-interactions">Set All to Highlight</option>
+                        </optgroup>
                     </select>
                 </div>
+                <p id="batch-preset-description" class="preset-description hidden"></p>
                 <div class="batch-manual-settings">
                     <p class="batch-manual-label">Or configure manually:</p>
                     <div class="batch-checkbox-row">
@@ -334,6 +512,16 @@
                             <option value="true">Enabled (true)</option>
                             <option value="false">Disabled (false)</option>
                             <option value="undefined">Remove property</option>
+                        </select>
+                    </div>
+                    <div class="batch-checkbox-row">
+                        <input type="checkbox" id="batch-interactions-enabled">
+                        <label for="batch-interactions-enabled">Set visual interactions to:</label>
+                        <select id="batch-interactions-value" disabled>
+                            <option value="NoFilter">Disabled (None)</option>
+                            <option value="DataFilter">Filter</option>
+                            <option value="HighlightFilter">Highlight</option>
+                            <option value="null">Reset to Default</option>
                         </select>
                     </div>
                 </div>
@@ -436,10 +624,11 @@
             </div>
             <div class="modal-body">
                 <h3>What is PBIR Visual Manager?</h3>
-                <p>This tool helps you manage visual properties in Power BI PBIR reports. It provides two main features:</p>
+                <p>This tool helps you manage visual properties in Power BI PBIR reports. It provides three main features:</p>
                 <ul>
                     <li><strong>Filter Visibility</strong> - Control whether filters are hidden or visible in reading mode</li>
                     <li><strong>Layer Order</strong> - Control whether visuals maintain their z-order during interactions</li>
+                    <li><strong>Visual Interactions</strong> - Control how visuals interact with each other (filter, highlight, or none)</li>
                 </ul>
 
                 <h3>Filter Visibility (isHiddenInViewMode)</h3>
@@ -465,6 +654,31 @@
                     <li><strong>Unlock All</strong> - Sets keepLayerOrder = false for all visuals. Visuals may move to the front when clicked or interacted with.</li>
                     <li><strong>Reset All</strong> - Removes the keepLayerOrder property from all visuals, restoring Power BI's default behavior.</li>
                     <li><strong>Save Preset</strong> - Saves your current layer order configuration as a reusable preset stored in your browser.</li>
+                </ul>
+
+                <h3>Visual Interactions</h3>
+                <p>The Visual Interactions feature allows you to control how selecting data in one visual affects other visuals on the same page. This is the <code>visualInteractions</code> property stored in <code>page.json</code>.</p>
+                <h4>Interaction Types</h4>
+                <ul>
+                    <li><strong>Default</strong> - Power BI determines the behavior (no explicit setting)</li>
+                    <li><strong>Filter (DataFilter)</strong> - Selection in source visual filters the target visual</li>
+                    <li><strong>Highlight (HighlightFilter)</strong> - Selection in source visual highlights data in target visual</li>
+                    <li><strong>None (NoFilter)</strong> - Selection in source visual is ignored by target visual</li>
+                </ul>
+                <h4>Using the Matrix View</h4>
+                <ul>
+                    <li>Row headers are <strong>source visuals</strong> (where you click)</li>
+                    <li>Column headers are <strong>target visuals</strong> (what gets affected)</li>
+                    <li>Click a cell to change the interaction type</li>
+                    <li>Ctrl+Click cells to select multiple, then use bulk actions</li>
+                    <li>For pages with 20+ visuals, List View is recommended for performance</li>
+                </ul>
+                <h4>Quick Actions</h4>
+                <ul>
+                    <li><strong>Disable All</strong> - Sets all interactions to None (NoFilter). No cross-filtering or highlighting.</li>
+                    <li><strong>Enable All</strong> - Resets all interactions to default Power BI behavior.</li>
+                    <li><strong>All Filter</strong> - Sets all interactions to Filter (DataFilter).</li>
+                    <li><strong>All Highlight</strong> - Sets all interactions to Highlight (HighlightFilter).</li>
                 </ul>
 
                 <h3>Batch Processing</h3>

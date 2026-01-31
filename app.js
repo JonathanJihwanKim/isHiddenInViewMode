@@ -19,18 +19,30 @@ class PBIRVisualManager {
         this.layerSelectedVisuals = new Set();
         this.layerCurrentFilter = 'all';
 
+        // Visual Interactions tab state
+        this.pages = [];                              // Page objects with interactions
+        this.interactionsHistory = [];                // Undo history
+        this.interactionsSelectedCells = new Set();   // Selected matrix cells (format: "sourceId|targetId")
+        this.interactionsCurrentFilter = 'all';       // Status filter
+        this.currentPageId = null;                    // Currently selected page
+        this.interactionsViewMode = 'matrix';         // 'matrix' or 'list'
+
         // Pro features state
         this.isProUser = false; // Will be set based on license validation
 
         // Presets state
         this.customPresets = this.loadCustomPresets();
         this.builtInPresets = [
-            { id: 'hide-all-filters', name: 'Hide All Filters', type: 'filter', value: true },
-            { id: 'show-all-filters', name: 'Show All Filters', type: 'filter', value: false },
-            { id: 'reset-all-filters', name: 'Reset All Filters', type: 'filter', value: undefined },
-            { id: 'lock-all-layers', name: 'Lock All Layers', type: 'layer', value: true },
-            { id: 'unlock-all-layers', name: 'Unlock All Layers', type: 'layer', value: false },
-            { id: 'reset-all-layers', name: 'Reset All Layers', type: 'layer', value: undefined }
+            { id: 'hide-all-filters', name: 'Hide All Filters', type: 'filter', value: true, description: 'Hides filter panes from report viewers. Filters still apply to data but are not visible or interactive.' },
+            { id: 'show-all-filters', name: 'Show All Filters', type: 'filter', value: false, description: 'Makes all filter panes visible. Viewers can see and interact with filters.' },
+            { id: 'reset-all-filters', name: 'Reset All Filters', type: 'filter', value: undefined, description: 'Removes the isHiddenInViewMode property. Restores Power BI default behavior.' },
+            { id: 'lock-all-layers', name: 'Lock All Layers', type: 'layer', value: true, description: 'Visuals stay in their defined z-order. Clicking a visual won\'t bring it to front.' },
+            { id: 'unlock-all-layers', name: 'Unlock All Layers', type: 'layer', value: false, description: 'Visuals can move to front when clicked. Allows dynamic layering during interaction.' },
+            { id: 'reset-all-layers', name: 'Reset All Layers', type: 'layer', value: undefined, description: 'Removes the keepLayerOrder property. Restores Power BI default behavior.' },
+            { id: 'disable-all-interactions', name: 'Disable All Interactions', type: 'interactions', value: 'NoFilter', description: 'Clicking one visual won\'t affect others. No cross-filtering or highlighting between visuals.' },
+            { id: 'enable-all-interactions', name: 'Enable All (Default)', type: 'interactions', value: null, description: 'Removes explicit settings. Power BI determines how visuals interact with each other.' },
+            { id: 'filter-all-interactions', name: 'Set All to Filter', type: 'interactions', value: 'DataFilter', description: 'Clicking a visual filters data in other visuals. Shows only matching data points.' },
+            { id: 'highlight-all-interactions', name: 'Set All to Highlight', type: 'interactions', value: 'HighlightFilter', description: 'Clicking a visual highlights related data in other visuals. Non-matching data is dimmed but visible.' }
         ];
         this.pendingPresetType = null; // Track which tab preset is being saved from
 
@@ -47,6 +59,7 @@ class PBIRVisualManager {
     initElements() {
         // Global buttons
         this.selectFolderBtn = document.getElementById('select-folder-btn');
+        this.refreshBtn = document.getElementById('refresh-btn');
         this.tabNavigation = document.getElementById('tab-navigation');
 
         // Sections
@@ -87,7 +100,10 @@ class PBIRVisualManager {
             totalFilters: document.getElementById('total-filters'),
             hiddenFilters: document.getElementById('hidden-filters'),
             visibleFilters: document.getElementById('visible-filters'),
-            defaultFilters: document.getElementById('default-filters')
+            defaultFilters: document.getElementById('default-filters'),
+            namingAlert: document.getElementById('filter-naming-alert'),
+            unnamedCount: document.getElementById('filter-unnamed-count'),
+            unnamedList: document.getElementById('filter-unnamed-list')
         };
 
         // Layer Order tab elements
@@ -115,7 +131,10 @@ class PBIRVisualManager {
             totalVisuals: document.getElementById('layer-total-visuals'),
             enabled: document.getElementById('layer-enabled'),
             disabled: document.getElementById('layer-disabled'),
-            notSet: document.getElementById('layer-not-set')
+            notSet: document.getElementById('layer-not-set'),
+            namingAlert: document.getElementById('layer-naming-alert'),
+            unnamedCount: document.getElementById('layer-unnamed-count'),
+            unnamedList: document.getElementById('layer-unnamed-list')
         };
 
         // Presets elements
@@ -141,16 +160,63 @@ class PBIRVisualManager {
             addReportBtn: document.getElementById('batch-add-report-btn'),
             clearQueueBtn: document.getElementById('batch-clear-queue-btn'),
             presetSelect: document.getElementById('batch-preset-select'),
+            presetDescription: document.getElementById('batch-preset-description'),
             filterEnabled: document.getElementById('batch-filter-enabled'),
             filterValue: document.getElementById('batch-filter-value'),
             layerEnabled: document.getElementById('batch-layer-enabled'),
             layerValue: document.getElementById('batch-layer-value'),
+            interactionsEnabled: document.getElementById('batch-interactions-enabled'),
+            interactionsValue: document.getElementById('batch-interactions-value'),
             processBtn: document.getElementById('batch-process-btn'),
             batchStatus: document.getElementById('batch-status'),
             progressSection: document.getElementById('batch-progress-section'),
             progressFill: document.getElementById('batch-progress-fill'),
             progressText: document.getElementById('batch-progress-text'),
             resultsList: document.getElementById('batch-results-list')
+        };
+
+        // Visual Interactions tab elements
+        this.interactionsElements = {
+            pageSection: document.getElementById('interactions-page-section'),
+            pageSelect: document.getElementById('interactions-page-select'),
+            summarySection: document.getElementById('interactions-summary-section'),
+            namingAlert: document.getElementById('interactions-naming-alert'),
+            unnamedCount: document.getElementById('interactions-unnamed-count'),
+            unnamedList: document.getElementById('interactions-unnamed-list'),
+            legendSection: document.getElementById('interactions-legend-section'),
+            presetsSection: document.getElementById('interactions-presets-section'),
+            viewSection: document.getElementById('interactions-view-section'),
+            viewMatrixBtn: document.getElementById('interactions-view-matrix-btn'),
+            viewListBtn: document.getElementById('interactions-view-list-btn'),
+            viewHint: document.getElementById('interactions-view-hint'),
+            actionsSection: document.getElementById('interactions-actions-section'),
+            selectAllBtn: document.getElementById('interactions-select-all-btn'),
+            selectNoneBtn: document.getElementById('interactions-select-none-btn'),
+            setNoneBtn: document.getElementById('interactions-set-none-btn'),
+            setFilterBtn: document.getElementById('interactions-set-filter-btn'),
+            setHighlightBtn: document.getElementById('interactions-set-highlight-btn'),
+            resetBtn: document.getElementById('interactions-reset-btn'),
+            actionHint: document.getElementById('interactions-action-hint'),
+            bulkActionBtns: document.querySelectorAll('.interactions-bulk-btn'),
+            matrixSection: document.getElementById('interactions-matrix-section'),
+            matrixContainer: document.getElementById('interactions-matrix-container'),
+            listContainer: document.getElementById('interactions-list-container'),
+            saveSection: document.getElementById('interactions-save-section'),
+            saveBtn: document.getElementById('interactions-save-btn'),
+            modifiedStatus: document.getElementById('interactions-modified-status'),
+            historySection: document.getElementById('interactions-history-section'),
+            undoBtn: document.getElementById('interactions-undo-btn'),
+            undoAllBtn: document.getElementById('interactions-undo-all-btn'),
+            exportCsvBtn: document.getElementById('interactions-export-csv-btn'),
+            exportJsonBtn: document.getElementById('interactions-export-json-btn'),
+            historyStatus: document.getElementById('interactions-history-status'),
+            // Summary values
+            totalInteractions: document.getElementById('interactions-total'),
+            explicitOverrides: document.getElementById('interactions-explicit'),
+            defaultInteractions: document.getElementById('interactions-default'),
+            noFilterCount: document.getElementById('interactions-nofilter'),
+            dataFilterCount: document.getElementById('interactions-datafilter'),
+            highlightFilterCount: document.getElementById('interactions-highlightfilter')
         };
     }
 
@@ -163,6 +229,7 @@ class PBIRVisualManager {
 
     bindEvents() {
         this.selectFolderBtn.addEventListener('click', () => this.selectFolder());
+        this.refreshBtn.addEventListener('click', () => this.refreshData());
 
         // Tab switching
         document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -234,12 +301,24 @@ class PBIRVisualManager {
 
         // Batch preset select
         this.batchElements.presetSelect.addEventListener('change', (e) => {
-            if (e.target.value) {
+            const presetId = e.target.value;
+            if (presetId) {
+                // Show preset description
+                const preset = this.builtInPresets.find(p => p.id === presetId);
+                if (preset?.description) {
+                    this.batchElements.presetDescription.textContent = preset.description;
+                    this.batchElements.presetDescription.classList.remove('hidden');
+                }
                 // Disable manual settings when preset is selected
                 this.batchElements.filterEnabled.checked = false;
                 this.batchElements.filterValue.disabled = true;
                 this.batchElements.layerEnabled.checked = false;
                 this.batchElements.layerValue.disabled = true;
+                this.batchElements.interactionsEnabled.checked = false;
+                this.batchElements.interactionsValue.disabled = true;
+            } else {
+                // Hide description when no preset selected
+                this.batchElements.presetDescription.classList.add('hidden');
             }
             this.updateBatchProcessButton();
         });
@@ -256,6 +335,75 @@ class PBIRVisualManager {
             if (e.target.checked) this.batchElements.presetSelect.value = '';
             this.updateBatchProcessButton();
         });
+
+        this.batchElements.interactionsEnabled.addEventListener('change', (e) => {
+            this.batchElements.interactionsValue.disabled = !e.target.checked;
+            if (e.target.checked) this.batchElements.presetSelect.value = '';
+            this.updateBatchProcessButton();
+        });
+
+        // Visual Interactions tab events
+        if (this.interactionsElements.pageSelect) {
+            this.interactionsElements.pageSelect.addEventListener('change', (e) => {
+                this.onPageSelected(e.target.value);
+            });
+        }
+
+        if (this.interactionsElements.viewMatrixBtn) {
+            this.interactionsElements.viewMatrixBtn.addEventListener('click', () => {
+                this.switchInteractionsView('matrix');
+            });
+        }
+
+        if (this.interactionsElements.viewListBtn) {
+            this.interactionsElements.viewListBtn.addEventListener('click', () => {
+                this.switchInteractionsView('list');
+            });
+        }
+
+        if (this.interactionsElements.selectAllBtn) {
+            this.interactionsElements.selectAllBtn.addEventListener('click', () => this.interactionsSelectAll());
+        }
+
+        if (this.interactionsElements.selectNoneBtn) {
+            this.interactionsElements.selectNoneBtn.addEventListener('click', () => this.interactionsSelectNone());
+        }
+
+        if (this.interactionsElements.setNoneBtn) {
+            this.interactionsElements.setNoneBtn.addEventListener('click', () => this.interactionsBulkSetType('NoFilter'));
+        }
+
+        if (this.interactionsElements.setFilterBtn) {
+            this.interactionsElements.setFilterBtn.addEventListener('click', () => this.interactionsBulkSetType('DataFilter'));
+        }
+
+        if (this.interactionsElements.setHighlightBtn) {
+            this.interactionsElements.setHighlightBtn.addEventListener('click', () => this.interactionsBulkSetType('HighlightFilter'));
+        }
+
+        if (this.interactionsElements.resetBtn) {
+            this.interactionsElements.resetBtn.addEventListener('click', () => this.interactionsBulkSetType(null));
+        }
+
+        if (this.interactionsElements.saveBtn) {
+            this.interactionsElements.saveBtn.addEventListener('click', () => this.saveInteractionsChanges());
+        }
+
+        if (this.interactionsElements.undoBtn) {
+            this.interactionsElements.undoBtn.addEventListener('click', () => this.interactionsUndo());
+        }
+
+        if (this.interactionsElements.undoAllBtn) {
+            this.interactionsElements.undoAllBtn.addEventListener('click', () => this.interactionsUndoAll());
+        }
+
+        if (this.interactionsElements.exportCsvBtn) {
+            this.interactionsElements.exportCsvBtn.addEventListener('click', () => this.exportInteractionsReport('csv'));
+        }
+
+        if (this.interactionsElements.exportJsonBtn) {
+            this.interactionsElements.exportJsonBtn.addEventListener('click', () => this.exportInteractionsReport('json'));
+        }
     }
 
     switchTab(tabId) {
@@ -278,11 +426,30 @@ class PBIRVisualManager {
         try {
             this.folderHandle = await window.showDirectoryPicker();
             this.folderPath.textContent = this.folderHandle.name;
+            this.refreshBtn.classList.remove('hidden');
             await this.scanVisuals();
         } catch (err) {
             if (err.name !== 'AbortError') {
                 this.showToast('Error selecting folder: ' + err.message, 'error');
             }
+        }
+    }
+
+    async refreshData() {
+        if (!this.folderHandle) return;
+
+        this.refreshBtn.disabled = true;
+        const originalText = this.refreshBtn.innerHTML;
+        this.refreshBtn.innerHTML = '&#8635; Refreshing...';
+
+        try {
+            await this.scanVisuals();
+            this.showToast('Data refreshed successfully', 'success');
+        } catch (err) {
+            this.showToast('Error refreshing data: ' + err.message, 'error');
+        } finally {
+            this.refreshBtn.disabled = false;
+            this.refreshBtn.innerHTML = originalText;
         }
     }
 
@@ -294,12 +461,21 @@ class PBIRVisualManager {
         this.layerSelectedVisuals.clear();
         this.pageDisplayNames.clear();
 
+        // Reset interactions state
+        this.pages = [];
+        this.interactionsHistory = [];
+        this.interactionsSelectedCells.clear();
+        this.currentPageId = null;
+
         try {
-            // Pass 1: Collect all page display names first
+            // Pass 1: Collect all page display names and interactions first
             await this.collectPageDisplayNames(this.folderHandle, '');
 
             // Pass 2: Process visual.json files
             await this.scanForVisuals(this.folderHandle, '');
+
+            // Pass 3: Build page objects with visuals for interactions tab
+            await this.buildPagesWithVisuals();
 
             if (this.visuals.length === 0) {
                 this.showEmptyState();
@@ -307,8 +483,11 @@ class PBIRVisualManager {
                 this.showContent();
                 this.updateFilterSummary();
                 this.updateLayerSummary();
+                this.checkUnnamedVisualsForTab(this.filterElements);
+                this.checkUnnamedVisualsForTab(this.layerElements);
                 this.renderFilterTable();
                 this.renderLayerTable();
+                this.updateInteractionsPageSelector();
             }
         } catch (err) {
             this.showToast('Error scanning folder: ' + err.message, 'error');
@@ -359,11 +538,25 @@ class PBIRVisualManager {
             const content = await file.text();
             const json = JSON.parse(content);
 
+            const pathParts = folderPath.split('/');
+            const pageId = pathParts[pathParts.length - 1];
+
             if (json.displayName) {
-                const pathParts = folderPath.split('/');
-                const pageId = pathParts[pathParts.length - 1];
                 this.pageDisplayNames.set(pageId, json.displayName);
             }
+
+            // Store page data for interactions tab (will be enriched with visuals later)
+            this.pages.push({
+                path: folderPath,
+                pageId: pageId,
+                displayName: json.displayName || pageId,
+                fileHandle: fileHandle,
+                originalJson: JSON.parse(content),
+                currentJson: json,
+                visuals: [],  // Will be populated in buildPagesWithVisuals
+                visualInteractions: json.visualInteractions || [],
+                modified: false
+            });
         } catch (err) {
             // Log to console for debugging, but don't show toast for page.json (non-critical)
             console.warn(`Could not read page.json at ${folderPath}: ${err.message}`);
@@ -414,6 +607,7 @@ class PBIRVisualManager {
                 visualId: visualId,
                 visualType: this.getVisualType(json),
                 visualName: this.getVisualName(json),
+                hasExplicitTitle: this.hasExplicitTitle(json),
                 filters: this.extractFilters(json),
                 keepLayerOrder: this.extractKeepLayerOrder(json),
                 fileHandle: fileHandle,
@@ -458,6 +652,19 @@ class PBIRVisualManager {
             return json.visual.name;
         }
         return '';
+    }
+
+    hasExplicitTitle(json) {
+        // Only check for explicit title in visualContainerObjects (user-set title)
+        // Do NOT fall back to json.name which is auto-generated by Power BI
+        if (json.visual?.visualContainerObjects?.title) {
+            const titleProps = json.visual.visualContainerObjects.title[0]?.properties;
+            if (titleProps?.text?.expr?.Literal?.Value) {
+                const title = titleProps.text.expr.Literal.Value.replace(/^'|'$/g, '');
+                return title && title.trim().length > 0;
+            }
+        }
+        return false;
     }
 
     extractFilters(json) {
@@ -506,6 +713,89 @@ class PBIRVisualManager {
             if (filter.field.Measure) return filter.field.Measure.Property || '';
         }
         return '';
+    }
+
+    // ==================== Visual Interactions Data Methods ====================
+
+    async buildPagesWithVisuals() {
+        // Group visuals by page and attach to page objects
+        for (const page of this.pages) {
+            const pageVisuals = this.visuals.filter(v => v.pageName === page.pageId);
+
+            page.visuals = pageVisuals.map(v => ({
+                visualId: v.visualId,
+                visualName: v.visualName,
+                visualType: v.visualType,
+                hasName: v.hasExplicitTitle
+            }));
+        }
+
+        // Set initial page if we have pages
+        if (this.pages.length > 0) {
+            this.currentPageId = this.pages[0].pageId;
+        }
+    }
+
+    getVisualDisplayName(visual) {
+        if (visual.visualName && visual.visualName.trim()) {
+            return visual.visualName;
+        }
+        // Fallback: visualType + shortened ID
+        const shortId = visual.visualId.length > 8
+            ? visual.visualId.substring(0, 8) + '...'
+            : visual.visualId;
+        return `${visual.visualType} (${shortId})`;
+    }
+
+    getCurrentPage() {
+        return this.pages.find(p => p.pageId === this.currentPageId);
+    }
+
+    getInteractionType(page, sourceId, targetId) {
+        const interaction = page.visualInteractions.find(
+            i => i.source === sourceId && i.target === targetId
+        );
+        return interaction ? interaction.type : 'Default';
+    }
+
+    buildInteractionMatrix(page) {
+        const matrix = [];
+        const visuals = page.visuals;
+
+        for (const source of visuals) {
+            for (const target of visuals) {
+                if (source.visualId === target.visualId) continue; // Skip self-interactions
+
+                const type = this.getInteractionType(page, source.visualId, target.visualId);
+
+                matrix.push({
+                    source: source.visualId,
+                    target: target.visualId,
+                    sourceName: this.getVisualDisplayName(source),
+                    targetName: this.getVisualDisplayName(target),
+                    sourceHasName: source.hasName,
+                    targetHasName: target.hasName,
+                    type: type,
+                    isDefault: type === 'Default',
+                    isExplicit: type !== 'Default'
+                });
+            }
+        }
+        return matrix;
+    }
+
+    countUnnamedVisuals(page) {
+        return page.visuals.filter(v => !v.hasName).length;
+    }
+
+    getInteractionTypeDisplay(type) {
+        switch (type) {
+            case 'Default': return { text: 'Default', class: 'interaction-default', icon: '&#9898;' };
+            case 'DataFilter': return { text: 'Filter', class: 'interaction-filter', icon: '&#128269;' };
+            case 'HighlightFilter': return { text: 'Highlight', class: 'interaction-highlight', icon: '&#128161;' };
+            case 'NoFilter': return { text: 'None', class: 'interaction-none', icon: '&#10060;' };
+            default: return { text: type, class: 'interaction-default', icon: '&#9898;' };
+        }
     }
 
     // ==================== Filter Visibility Methods ====================
@@ -1347,6 +1637,7 @@ class PBIRVisualManager {
 
     showEmptyState() {
         this.tabNavigation.classList.add('hidden');
+        this.refreshBtn.classList.add('hidden');
 
         // Hide filter tab sections
         this.filterElements.summarySection.classList.add('hidden');
@@ -1371,6 +1662,20 @@ class PBIRVisualManager {
         const layerLegend = document.getElementById('layer-legend-section');
         if (layerLegend) layerLegend.classList.add('hidden');
         this.presetElements.layerPresetsSection.classList.add('hidden');
+
+        // Hide interactions tab sections
+        if (this.interactionsElements) {
+            this.interactionsElements.pageSection?.classList.add('hidden');
+            this.interactionsElements.summarySection?.classList.add('hidden');
+            this.interactionsElements.namingAlert?.classList.add('hidden');
+            this.interactionsElements.legendSection?.classList.add('hidden');
+            this.interactionsElements.presetsSection?.classList.add('hidden');
+            this.interactionsElements.viewSection?.classList.add('hidden');
+            this.interactionsElements.actionsSection?.classList.add('hidden');
+            this.interactionsElements.matrixSection?.classList.add('hidden');
+            this.interactionsElements.saveSection?.classList.add('hidden');
+            this.interactionsElements.historySection?.classList.add('hidden');
+        }
 
         this.emptyState.classList.remove('hidden');
     }
@@ -1402,6 +1707,20 @@ class PBIRVisualManager {
         const layerLegend = document.getElementById('layer-legend-section');
         if (layerLegend) layerLegend.classList.remove('hidden');
         this.presetElements.layerPresetsSection.classList.remove('hidden');
+
+        // Show interactions tab sections
+        if (this.interactionsElements) {
+            this.interactionsElements.pageSection?.classList.remove('hidden');
+            this.interactionsElements.summarySection?.classList.remove('hidden');
+            // namingAlert is shown conditionally by checkUnnamedVisuals
+            this.interactionsElements.legendSection?.classList.remove('hidden');
+            this.interactionsElements.presetsSection?.classList.remove('hidden');
+            this.interactionsElements.viewSection?.classList.remove('hidden');
+            this.interactionsElements.actionsSection?.classList.remove('hidden');
+            this.interactionsElements.matrixSection?.classList.remove('hidden');
+            this.interactionsElements.saveSection?.classList.remove('hidden');
+            this.interactionsElements.historySection?.classList.remove('hidden');
+        }
     }
 
     async saveChanges() {
@@ -1536,6 +1855,10 @@ class PBIRVisualManager {
             }
             // Apply the value
             this.layerBulkSetValue(preset.value);
+        } else if (preset.type === 'interactions') {
+            // Apply to all interactions on current page
+            this.interactionsSelectedCells.clear();
+            this.interactionsBulkSetType(preset.value);
         }
     }
 
@@ -1813,7 +2136,8 @@ class PBIRVisualManager {
         const hasQueue = this.batchQueue.length > 0;
         const hasSettings = this.batchElements.presetSelect.value ||
                           this.batchElements.filterEnabled.checked ||
-                          this.batchElements.layerEnabled.checked;
+                          this.batchElements.layerEnabled.checked ||
+                          this.batchElements.interactionsEnabled.checked;
 
         this.batchElements.processBtn.disabled = !hasQueue || !hasSettings || this.batchProcessing;
 
@@ -1872,7 +2196,9 @@ class PBIRVisualManager {
             filterEnabled: false,
             filterValue: undefined,
             layerEnabled: false,
-            layerValue: undefined
+            layerValue: undefined,
+            interactionsEnabled: false,
+            interactionsValue: undefined
         };
 
         // Check if preset is selected
@@ -1886,6 +2212,9 @@ class PBIRVisualManager {
                 } else if (preset.type === 'layer') {
                     settings.layerEnabled = true;
                     settings.layerValue = preset.value;
+                } else if (preset.type === 'interactions') {
+                    settings.interactionsEnabled = true;
+                    settings.interactionsValue = preset.value;
                 }
             }
         } else {
@@ -1899,6 +2228,11 @@ class PBIRVisualManager {
                 settings.layerEnabled = true;
                 const val = this.batchElements.layerValue.value;
                 settings.layerValue = val === 'true' ? true : (val === 'false' ? false : undefined);
+            }
+            if (this.batchElements.interactionsEnabled.checked) {
+                settings.interactionsEnabled = true;
+                const val = this.batchElements.interactionsValue.value;
+                settings.interactionsValue = val === 'null' ? null : val;
             }
         }
 
@@ -1946,7 +2280,119 @@ class PBIRVisualManager {
             }
         }
 
+        // Apply interactions settings (process page.json files)
+        if (settings.interactionsEnabled) {
+            const pagesUpdated = await this.processInteractionsBatch(dirHandle, settings.interactionsValue);
+            updatedCount += pagesUpdated;
+        }
+
         return { updatedCount };
+    }
+
+    async processInteractionsBatch(dirHandle, interactionType, currentPath = '', depth = 0) {
+        const MAX_DEPTH = 50;
+        if (depth >= MAX_DEPTH) return 0;
+
+        let updatedCount = 0;
+
+        for await (const entry of dirHandle.values()) {
+            const entryPath = currentPath ? `${currentPath}/${entry.name}` : entry.name;
+
+            if (entry.kind === 'directory') {
+                updatedCount += await this.processInteractionsBatch(entry, interactionType, entryPath, depth + 1);
+            } else if (entry.kind === 'file' && entry.name === 'page.json') {
+                try {
+                    const file = await entry.getFile();
+                    const content = await file.text();
+                    const json = JSON.parse(content);
+
+                    // Get all visuals on this page
+                    const pageDir = await this.getParentDirectory(dirHandle, currentPath);
+                    if (!pageDir) continue;
+
+                    const visualIds = await this.collectVisualIdsFromPage(pageDir);
+
+                    // Build new interactions array
+                    let modified = false;
+
+                    if (interactionType === null) {
+                        // Reset to default - remove visualInteractions
+                        if (json.visualInteractions && json.visualInteractions.length > 0) {
+                            delete json.visualInteractions;
+                            modified = true;
+                        }
+                    } else {
+                        // Set all interactions to specified type
+                        const newInteractions = [];
+                        for (const sourceId of visualIds) {
+                            for (const targetId of visualIds) {
+                                if (sourceId !== targetId) {
+                                    newInteractions.push({
+                                        source: sourceId,
+                                        target: targetId,
+                                        type: interactionType
+                                    });
+                                }
+                            }
+                        }
+
+                        // Check if changed
+                        const oldInteractionsStr = JSON.stringify(json.visualInteractions || []);
+                        const newInteractionsStr = JSON.stringify(newInteractions);
+                        if (oldInteractionsStr !== newInteractionsStr) {
+                            json.visualInteractions = newInteractions;
+                            modified = true;
+                        }
+                    }
+
+                    if (modified) {
+                        const writable = await entry.createWritable();
+                        await writable.write(JSON.stringify(json, null, 2));
+                        await writable.close();
+                        updatedCount++;
+                    }
+                } catch (err) {
+                    console.warn(`Could not process page.json at ${entryPath}:`, err);
+                }
+            }
+        }
+
+        return updatedCount;
+    }
+
+    async getParentDirectory(rootHandle, path) {
+        if (!path) return rootHandle;
+
+        const parts = path.split('/');
+        let currentHandle = rootHandle;
+
+        for (const part of parts) {
+            try {
+                currentHandle = await currentHandle.getDirectoryHandle(part);
+            } catch {
+                return null;
+            }
+        }
+
+        return currentHandle;
+    }
+
+    async collectVisualIdsFromPage(pageHandle) {
+        const visualIds = [];
+
+        try {
+            const visualsDir = await pageHandle.getDirectoryHandle('visuals');
+
+            for await (const entry of visualsDir.values()) {
+                if (entry.kind === 'directory') {
+                    visualIds.push(entry.name);
+                }
+            }
+        } catch {
+            // No visuals directory
+        }
+
+        return visualIds;
     }
 
     async collectVisualsFromFolder(dirHandle, currentPath, visuals, depth = 0) {
@@ -2049,6 +2495,684 @@ class PBIRVisualManager {
             </div>
         `;
         this.batchElements.resultsList.innerHTML += resultHtml;
+    }
+
+    // ==================== Visual Interactions Methods ====================
+
+    updateInteractionsPageSelector() {
+        if (!this.interactionsElements?.pageSelect) return;
+
+        this.interactionsElements.pageSelect.innerHTML = this.pages.map(page => {
+            const visualCount = page.visuals.length;
+            return `<option value="${page.pageId}">${this.escapeHtml(page.displayName)} (${visualCount} visuals)</option>`;
+        }).join('');
+
+        if (this.pages.length > 0 && !this.currentPageId) {
+            this.currentPageId = this.pages[0].pageId;
+        }
+
+        if (this.currentPageId) {
+            this.interactionsElements.pageSelect.value = this.currentPageId;
+            this.onPageSelected(this.currentPageId);
+        }
+    }
+
+    onPageSelected(pageId) {
+        this.currentPageId = pageId;
+        const page = this.getCurrentPage();
+        if (!page) return;
+
+        // Determine default view based on visual count
+        const visualCount = page.visuals.length;
+        if (visualCount >= 20 && this.interactionsViewMode === 'matrix') {
+            // Auto-switch to list view for large pages (but user can toggle back)
+            this.interactionsViewMode = 'list';
+        } else if (visualCount < 20) {
+            this.interactionsViewMode = 'matrix';
+        }
+
+        this.interactionsSelectedCells.clear();
+        this.updateInteractionsViewToggle();
+        this.updateInteractionsSummary();
+        this.checkUnnamedVisuals(page);
+        this.renderInteractionsView();
+        this.updateInteractionsSelectionButtons();
+    }
+
+    updateInteractionsViewToggle() {
+        if (!this.interactionsElements?.viewMatrixBtn || !this.interactionsElements?.viewListBtn) return;
+
+        this.interactionsElements.viewMatrixBtn.classList.toggle('active', this.interactionsViewMode === 'matrix');
+        this.interactionsElements.viewListBtn.classList.toggle('active', this.interactionsViewMode === 'list');
+
+        const page = this.getCurrentPage();
+        if (page && this.interactionsElements.viewHint) {
+            const visualCount = page.visuals.length;
+            this.interactionsElements.viewHint.textContent = visualCount >= 20
+                ? '(20+ visuals: List recommended)'
+                : '';
+        }
+    }
+
+    switchInteractionsView(view) {
+        this.interactionsViewMode = view;
+        this.updateInteractionsViewToggle();
+        this.renderInteractionsView();
+    }
+
+    updateInteractionsSummary() {
+        if (!this.interactionsElements?.totalInteractions) return;
+
+        const page = this.getCurrentPage();
+        if (!page) return;
+
+        const visualCount = page.visuals.length;
+        const totalPossible = visualCount * (visualCount - 1); // N × (N-1) interactions
+        const explicitCount = page.visualInteractions.length;
+        const defaultCount = totalPossible - explicitCount;
+
+        // Count by type
+        const typeCounts = { NoFilter: 0, DataFilter: 0, HighlightFilter: 0 };
+        for (const interaction of page.visualInteractions) {
+            if (typeCounts[interaction.type] !== undefined) {
+                typeCounts[interaction.type]++;
+            }
+        }
+
+        this.interactionsElements.totalInteractions.textContent = totalPossible;
+        this.interactionsElements.explicitOverrides.textContent = explicitCount;
+        this.interactionsElements.defaultInteractions.textContent = defaultCount;
+        this.interactionsElements.noFilterCount.textContent = typeCounts.NoFilter;
+        this.interactionsElements.dataFilterCount.textContent = typeCounts.DataFilter;
+        this.interactionsElements.highlightFilterCount.textContent = typeCounts.HighlightFilter;
+    }
+
+    checkUnnamedVisuals(page) {
+        if (!this.interactionsElements?.namingAlert) return;
+
+        const unnamedVisuals = page.visuals.filter(v => !v.hasName);
+
+        if (unnamedVisuals.length > 0) {
+            this.interactionsElements.namingAlert.classList.remove('hidden');
+            this.interactionsElements.unnamedCount.textContent = unnamedVisuals.length;
+
+            // Populate unnamed list
+            this.interactionsElements.unnamedList.innerHTML = unnamedVisuals.map(v => {
+                const displayName = this.getVisualDisplayName(v);
+                return `<li><em>${this.escapeHtml(displayName)}</em></li>`;
+            }).join('');
+        } else {
+            this.interactionsElements.namingAlert.classList.add('hidden');
+        }
+    }
+
+    checkUnnamedVisualsForTab(elements) {
+        if (!elements?.namingAlert) return;
+
+        const unnamedVisuals = this.visuals.filter(v => !v.hasExplicitTitle);
+
+        if (unnamedVisuals.length > 0) {
+            elements.namingAlert.classList.remove('hidden');
+            elements.unnamedCount.textContent = unnamedVisuals.length;
+            elements.unnamedList.innerHTML = unnamedVisuals.map(v => {
+                const displayName = v.visualName || `${v.visualType} (${v.visualId.substring(0, 8)}...)`;
+                return `<li><em>${this.escapeHtml(displayName)}</em> - ${this.escapeHtml(v.pageDisplayName)}</li>`;
+            }).join('');
+        } else {
+            elements.namingAlert.classList.add('hidden');
+        }
+    }
+
+    renderInteractionsView() {
+        if (this.interactionsViewMode === 'matrix') {
+            this.interactionsElements.matrixContainer.classList.remove('hidden');
+            this.interactionsElements.listContainer.classList.add('hidden');
+            this.renderInteractionMatrix();
+        } else {
+            this.interactionsElements.matrixContainer.classList.add('hidden');
+            this.interactionsElements.listContainer.classList.remove('hidden');
+            this.renderInteractionList();
+        }
+    }
+
+    renderInteractionMatrix() {
+        const page = this.getCurrentPage();
+        if (!page || !this.interactionsElements?.matrixContainer) return;
+
+        const visuals = page.visuals;
+        if (visuals.length === 0) {
+            this.interactionsElements.matrixContainer.innerHTML = '<p class="no-visuals">No visuals on this page</p>';
+            return;
+        }
+
+        // Build matrix table HTML
+        let html = '<table class="interaction-matrix">';
+
+        // Header row with target visuals
+        html += '<thead><tr><th class="corner-cell"></th>';
+        for (const target of visuals) {
+            const displayName = this.getVisualDisplayName(target);
+            const nameClass = target.hasName ? '' : 'unnamed-visual';
+            html += `<th class="target-header ${nameClass}" title="${this.escapeHtml(target.visualId)}">${this.escapeHtml(displayName)}</th>`;
+        }
+        html += '</tr></thead>';
+
+        // Body rows with source visuals
+        html += '<tbody>';
+        for (const source of visuals) {
+            const sourceDisplayName = this.getVisualDisplayName(source);
+            const sourceNameClass = source.hasName ? '' : 'unnamed-visual';
+
+            html += '<tr>';
+            html += `<th class="source-header ${sourceNameClass}" title="${this.escapeHtml(source.visualId)}">${this.escapeHtml(sourceDisplayName)}</th>`;
+
+            for (const target of visuals) {
+                if (source.visualId === target.visualId) {
+                    // Diagonal cell - self interaction (disabled)
+                    html += '<td class="interaction-cell interaction-cell-disabled">—</td>';
+                } else {
+                    const type = this.getInteractionType(page, source.visualId, target.visualId);
+                    const typeDisplay = this.getInteractionTypeDisplay(type);
+                    const cellKey = `${source.visualId}|${target.visualId}`;
+                    const isSelected = this.interactionsSelectedCells.has(cellKey);
+
+                    html += `<td class="interaction-cell ${typeDisplay.class} ${isSelected ? 'selected' : ''}"
+                                data-source="${source.visualId}"
+                                data-target="${target.visualId}"
+                                title="${this.escapeHtml(sourceDisplayName)} → ${this.escapeHtml(this.getVisualDisplayName(target))}: ${typeDisplay.text}">
+                                <span class="interaction-icon">${typeDisplay.icon}</span>
+                            </td>`;
+                }
+            }
+            html += '</tr>';
+        }
+        html += '</tbody></table>';
+
+        this.interactionsElements.matrixContainer.innerHTML = html;
+
+        // Bind cell click events
+        this.interactionsElements.matrixContainer.querySelectorAll('.interaction-cell:not(.interaction-cell-disabled)').forEach(cell => {
+            cell.addEventListener('click', (e) => {
+                if (e.ctrlKey || e.metaKey) {
+                    // Multi-select with Ctrl/Cmd
+                    this.toggleCellSelection(cell.dataset.source, cell.dataset.target);
+                } else {
+                    // Single click - open type selector
+                    this.showInteractionTypeSelector(cell, cell.dataset.source, cell.dataset.target);
+                }
+            });
+        });
+    }
+
+    renderInteractionList() {
+        const page = this.getCurrentPage();
+        if (!page || !this.interactionsElements?.listContainer) return;
+
+        // Show only explicit (non-default) interactions
+        const interactions = page.visualInteractions;
+
+        if (interactions.length === 0) {
+            this.interactionsElements.listContainer.innerHTML = '<p class="no-interactions">No explicit interaction overrides. All interactions use default behavior.</p>';
+            return;
+        }
+
+        let html = '<table class="interaction-list-table">';
+        html += '<thead><tr><th>Source Visual</th><th>Target Visual</th><th>Type</th><th>Actions</th></tr></thead>';
+        html += '<tbody>';
+
+        for (const interaction of interactions) {
+            const sourceVisual = page.visuals.find(v => v.visualId === interaction.source);
+            const targetVisual = page.visuals.find(v => v.visualId === interaction.target);
+
+            const sourceName = sourceVisual ? this.getVisualDisplayName(sourceVisual) : interaction.source;
+            const targetName = targetVisual ? this.getVisualDisplayName(targetVisual) : interaction.target;
+            const typeDisplay = this.getInteractionTypeDisplay(interaction.type);
+
+            html += `<tr data-source="${interaction.source}" data-target="${interaction.target}">
+                <td class="${sourceVisual?.hasName ? '' : 'unnamed-visual'}">${this.escapeHtml(sourceName)}</td>
+                <td class="${targetVisual?.hasName ? '' : 'unnamed-visual'}">${this.escapeHtml(targetName)}</td>
+                <td><span class="interaction-type-badge ${typeDisplay.class}">${typeDisplay.icon} ${typeDisplay.text}</span></td>
+                <td>
+                    <button class="btn btn-sm btn-action edit-interaction-btn" data-source="${interaction.source}" data-target="${interaction.target}">Edit</button>
+                    <button class="btn btn-sm btn-secondary reset-interaction-btn" data-source="${interaction.source}" data-target="${interaction.target}">Reset</button>
+                </td>
+            </tr>`;
+        }
+
+        html += '</tbody></table>';
+
+        this.interactionsElements.listContainer.innerHTML = html;
+
+        // Bind edit/reset buttons
+        this.interactionsElements.listContainer.querySelectorAll('.edit-interaction-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.showInteractionTypeSelector(btn, btn.dataset.source, btn.dataset.target);
+            });
+        });
+
+        this.interactionsElements.listContainer.querySelectorAll('.reset-interaction-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                this.setInteractionType(this.currentPageId, btn.dataset.source, btn.dataset.target, null);
+            });
+        });
+    }
+
+    toggleCellSelection(sourceId, targetId) {
+        const cellKey = `${sourceId}|${targetId}`;
+        if (this.interactionsSelectedCells.has(cellKey)) {
+            this.interactionsSelectedCells.delete(cellKey);
+        } else {
+            this.interactionsSelectedCells.add(cellKey);
+        }
+        this.renderInteractionsView();
+        this.updateInteractionsSelectionButtons();
+    }
+
+    showInteractionTypeSelector(element, sourceId, targetId) {
+        // Remove any existing selector
+        const existingSelector = document.querySelector('.interaction-type-selector');
+        if (existingSelector) existingSelector.remove();
+
+        const page = this.getCurrentPage();
+        if (!page) return;
+
+        const currentType = this.getInteractionType(page, sourceId, targetId);
+
+        const selector = document.createElement('div');
+        selector.className = 'interaction-type-selector';
+        selector.innerHTML = `
+            <button class="type-option ${currentType === 'Default' ? 'active' : ''}" data-type="null">&#9898; Default</button>
+            <button class="type-option ${currentType === 'DataFilter' ? 'active' : ''}" data-type="DataFilter">&#128269; Filter</button>
+            <button class="type-option ${currentType === 'HighlightFilter' ? 'active' : ''}" data-type="HighlightFilter">&#128161; Highlight</button>
+            <button class="type-option ${currentType === 'NoFilter' ? 'active' : ''}" data-type="NoFilter">&#10060; None</button>
+        `;
+
+        // Position selector near element
+        const rect = element.getBoundingClientRect();
+        selector.style.position = 'fixed';
+        selector.style.left = `${rect.left}px`;
+        selector.style.top = `${rect.bottom + 5}px`;
+        selector.style.zIndex = '1000';
+
+        document.body.appendChild(selector);
+
+        // Bind type selection
+        selector.querySelectorAll('.type-option').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const newType = btn.dataset.type === 'null' ? null : btn.dataset.type;
+                this.setInteractionType(this.currentPageId, sourceId, targetId, newType);
+                selector.remove();
+            });
+        });
+
+        // Close on click outside
+        const closeHandler = (e) => {
+            if (!selector.contains(e.target) && e.target !== element) {
+                selector.remove();
+                document.removeEventListener('click', closeHandler);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', closeHandler), 0);
+    }
+
+    setInteractionType(pageId, sourceId, targetId, newType) {
+        const page = this.pages.find(p => p.pageId === pageId);
+        if (!page) return;
+
+        // Find existing interaction
+        const existingIndex = page.visualInteractions.findIndex(
+            i => i.source === sourceId && i.target === targetId
+        );
+        const oldType = existingIndex >= 0 ? page.visualInteractions[existingIndex].type : null;
+
+        // Don't record if no change
+        if ((oldType === null && newType === null) || oldType === newType) return;
+
+        // Record history
+        this.interactionsHistory.push({
+            type: 'single',
+            pageId: pageId,
+            changes: [{
+                source: sourceId,
+                target: targetId,
+                oldType: oldType,
+                newType: newType
+            }],
+            timestamp: new Date()
+        });
+
+        // Apply change
+        if (newType === null) {
+            // Remove entry (reset to default)
+            if (existingIndex >= 0) {
+                page.visualInteractions.splice(existingIndex, 1);
+            }
+        } else if (existingIndex >= 0) {
+            // Update existing entry
+            page.visualInteractions[existingIndex].type = newType;
+        } else {
+            // Add new entry
+            page.visualInteractions.push({ source: sourceId, target: targetId, type: newType });
+        }
+
+        // Sync to JSON
+        page.currentJson.visualInteractions = page.visualInteractions.length > 0
+            ? [...page.visualInteractions]
+            : undefined;
+        if (page.currentJson.visualInteractions === undefined) {
+            delete page.currentJson.visualInteractions;
+        }
+        page.modified = true;
+
+        // Update UI
+        this.updateInteractionsSummary();
+        this.updateInteractionsModifiedStatus();
+        this.updateInteractionsHistoryStatus();
+        this.renderInteractionsView();
+
+        const typeText = newType === null ? 'default' : newType;
+        this.showToast(`Set interaction to ${typeText}`, 'success');
+    }
+
+    interactionsBulkSetType(type) {
+        const page = this.getCurrentPage();
+        if (!page) return;
+
+        const changes = [];
+        let targets;
+
+        if (this.interactionsSelectedCells.size > 0) {
+            // Apply to selected cells
+            targets = Array.from(this.interactionsSelectedCells).map(key => {
+                const [source, target] = key.split('|');
+                return { source, target };
+            });
+        } else {
+            // Apply to all cells
+            targets = [];
+            for (const source of page.visuals) {
+                for (const target of page.visuals) {
+                    if (source.visualId !== target.visualId) {
+                        targets.push({ source: source.visualId, target: target.visualId });
+                    }
+                }
+            }
+        }
+
+        for (const { source, target } of targets) {
+            const existingIndex = page.visualInteractions.findIndex(
+                i => i.source === source && i.target === target
+            );
+            const oldType = existingIndex >= 0 ? page.visualInteractions[existingIndex].type : null;
+
+            if (oldType !== type) {
+                changes.push({ source, target, oldType, newType: type });
+
+                if (type === null) {
+                    if (existingIndex >= 0) {
+                        page.visualInteractions.splice(existingIndex, 1);
+                    }
+                } else if (existingIndex >= 0) {
+                    page.visualInteractions[existingIndex].type = type;
+                } else {
+                    page.visualInteractions.push({ source, target, type });
+                }
+            }
+        }
+
+        if (changes.length > 0) {
+            this.interactionsHistory.push({
+                type: 'bulk',
+                pageId: this.currentPageId,
+                changes: changes,
+                timestamp: new Date()
+            });
+
+            // Sync to JSON
+            page.currentJson.visualInteractions = page.visualInteractions.length > 0
+                ? [...page.visualInteractions]
+                : undefined;
+            if (page.currentJson.visualInteractions === undefined) {
+                delete page.currentJson.visualInteractions;
+            }
+            page.modified = true;
+        }
+
+        this.interactionsSelectedCells.clear();
+        this.updateInteractionsSummary();
+        this.updateInteractionsModifiedStatus();
+        this.updateInteractionsHistoryStatus();
+        this.renderInteractionsView();
+        this.updateInteractionsSelectionButtons();
+
+        const typeText = type === null ? 'default' : type;
+        this.showToast(`Set ${changes.length} interaction(s) to ${typeText}`, 'success');
+    }
+
+    interactionsUndo() {
+        if (this.interactionsHistory.length === 0) return;
+
+        const entry = this.interactionsHistory.pop();
+        const page = this.pages.find(p => p.pageId === entry.pageId);
+        if (!page) return;
+
+        for (const change of entry.changes) {
+            const existingIndex = page.visualInteractions.findIndex(
+                i => i.source === change.source && i.target === change.target
+            );
+
+            if (change.oldType === null) {
+                // Was default, remove the entry we added
+                if (existingIndex >= 0) {
+                    page.visualInteractions.splice(existingIndex, 1);
+                }
+            } else if (existingIndex >= 0) {
+                // Update back to old type
+                page.visualInteractions[existingIndex].type = change.oldType;
+            } else {
+                // Re-add with old type
+                page.visualInteractions.push({
+                    source: change.source,
+                    target: change.target,
+                    type: change.oldType
+                });
+            }
+        }
+
+        // Sync to JSON
+        page.currentJson.visualInteractions = page.visualInteractions.length > 0
+            ? [...page.visualInteractions]
+            : undefined;
+        if (page.currentJson.visualInteractions === undefined) {
+            delete page.currentJson.visualInteractions;
+        }
+
+        this.checkInteractionsModifications();
+        this.updateInteractionsSummary();
+        this.updateInteractionsModifiedStatus();
+        this.updateInteractionsHistoryStatus();
+        this.renderInteractionsView();
+
+        this.showToast('Change undone', 'success');
+    }
+
+    interactionsUndoAll() {
+        if (this.interactionsHistory.length === 0) return;
+
+        // Restore all pages to original state
+        for (const page of this.pages) {
+            page.currentJson = JSON.parse(JSON.stringify(page.originalJson));
+            page.visualInteractions = page.currentJson.visualInteractions || [];
+            page.modified = false;
+        }
+
+        this.interactionsHistory = [];
+        this.updateInteractionsSummary();
+        this.updateInteractionsModifiedStatus();
+        this.updateInteractionsHistoryStatus();
+        this.renderInteractionsView();
+
+        this.showToast('All interaction changes undone', 'success');
+    }
+
+    checkInteractionsModifications() {
+        for (const page of this.pages) {
+            const originalInteractions = page.originalJson.visualInteractions || [];
+            const currentInteractions = page.visualInteractions;
+
+            // Simple comparison - check if arrays are equal
+            const hasChanges = JSON.stringify(originalInteractions) !== JSON.stringify(currentInteractions);
+            page.modified = hasChanges;
+        }
+    }
+
+    updateInteractionsModifiedStatus() {
+        if (!this.interactionsElements?.modifiedStatus || !this.interactionsElements?.saveBtn) return;
+
+        const modifiedCount = this.pages.filter(p => p.modified).length;
+
+        if (modifiedCount === 0) {
+            this.interactionsElements.modifiedStatus.textContent = 'No changes';
+            this.interactionsElements.modifiedStatus.classList.remove('has-changes');
+            this.interactionsElements.saveBtn.disabled = true;
+        } else {
+            this.interactionsElements.modifiedStatus.textContent = `${modifiedCount} page(s) modified`;
+            this.interactionsElements.modifiedStatus.classList.add('has-changes');
+            this.interactionsElements.saveBtn.disabled = false;
+        }
+    }
+
+    updateInteractionsHistoryStatus() {
+        if (!this.interactionsElements?.historyStatus) return;
+
+        this.interactionsElements.historyStatus.textContent = `History: ${this.interactionsHistory.length} change(s)`;
+        this.interactionsElements.undoBtn.disabled = this.interactionsHistory.length === 0;
+        this.interactionsElements.undoAllBtn.disabled = this.interactionsHistory.length === 0;
+    }
+
+    updateInteractionsSelectionButtons() {
+        if (!this.interactionsElements?.bulkActionBtns) return;
+
+        const hasSelection = this.interactionsSelectedCells.size > 0;
+
+        // Enable/disable bulk action buttons
+        this.interactionsElements.bulkActionBtns.forEach(btn => {
+            btn.disabled = !hasSelection;
+        });
+
+        // Update action hint
+        if (this.interactionsElements.actionHint) {
+            this.interactionsElements.actionHint.style.display = hasSelection ? 'none' : 'block';
+        }
+    }
+
+    async saveInteractionsChanges() {
+        const modifiedPages = this.pages.filter(p => p.modified);
+        if (modifiedPages.length === 0) return;
+
+        try {
+            for (const page of modifiedPages) {
+                const writable = await page.fileHandle.createWritable();
+                const content = JSON.stringify(page.currentJson, null, 2);
+                await writable.write(content);
+                await writable.close();
+
+                page.originalJson = JSON.parse(content);
+                page.modified = false;
+            }
+
+            this.interactionsHistory = [];
+            this.updateInteractionsModifiedStatus();
+            this.updateInteractionsHistoryStatus();
+            this.renderInteractionsView();
+
+            this.showToast(`Saved ${modifiedPages.length} page(s). Reload your report in Power BI Desktop to see changes.`, 'success');
+        } catch (err) {
+            let errorMessage = 'Error saving files: ';
+            if (err.name === 'NotAllowedError') {
+                errorMessage = 'Permission denied. Please grant folder access and try again.';
+            } else if (err.name === 'QuotaExceededError') {
+                errorMessage = 'Disk full. Please free up space and try again.';
+            } else if (err.name === 'NotFoundError') {
+                errorMessage = 'File not found. The file may have been moved or deleted.';
+            } else {
+                errorMessage += err.message;
+            }
+            this.showToast(errorMessage, 'error');
+        }
+    }
+
+    exportInteractionsReport(format) {
+        const data = this.pages.map(page => ({
+            pageId: page.pageId,
+            displayName: page.displayName,
+            visualCount: page.visuals.length,
+            interactionCount: page.visualInteractions.length,
+            visuals: page.visuals.map(v => ({
+                visualId: v.visualId,
+                visualName: v.visualName || v.visualId,
+                visualType: v.visualType,
+                hasName: v.hasName
+            })),
+            interactions: page.visualInteractions.map(i => ({
+                source: i.source,
+                target: i.target,
+                type: i.type
+            }))
+        }));
+
+        let content, filename, type;
+
+        if (format === 'csv') {
+            const rows = [['Page', 'Source Visual', 'Target Visual', 'Interaction Type']];
+
+            for (const page of data) {
+                for (const interaction of page.interactions) {
+                    const sourceVisual = page.visuals.find(v => v.visualId === interaction.source);
+                    const targetVisual = page.visuals.find(v => v.visualId === interaction.target);
+
+                    rows.push([
+                        page.displayName,
+                        sourceVisual ? sourceVisual.visualName : interaction.source,
+                        targetVisual ? targetVisual.visualName : interaction.target,
+                        interaction.type
+                    ]);
+                }
+            }
+
+            content = rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+            filename = 'visual-interactions-report.csv';
+            type = 'text/csv';
+        } else {
+            content = JSON.stringify(data, null, 2);
+            filename = 'visual-interactions-report.json';
+            type = 'application/json';
+        }
+
+        this.downloadFile(content, filename, type);
+        this.showToast(`Exported ${format.toUpperCase()} report`, 'success');
+    }
+
+    interactionsSelectAll() {
+        const page = this.getCurrentPage();
+        if (!page) return;
+
+        this.interactionsSelectedCells.clear();
+        for (const source of page.visuals) {
+            for (const target of page.visuals) {
+                if (source.visualId !== target.visualId) {
+                    this.interactionsSelectedCells.add(`${source.visualId}|${target.visualId}`);
+                }
+            }
+        }
+        this.renderInteractionsView();
+        this.updateInteractionsSelectionButtons();
+    }
+
+    interactionsSelectNone() {
+        this.interactionsSelectedCells.clear();
+        this.renderInteractionsView();
+        this.updateInteractionsSelectionButtons();
     }
 }
 

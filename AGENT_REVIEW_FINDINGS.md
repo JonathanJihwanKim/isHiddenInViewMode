@@ -521,3 +521,138 @@ Copy these to GitHub Issues (https://github.com/JonathanJihwanKim/isHiddenInView
 | 8-10 | Path parsing, clone, optional chaining | bug |
 | 17-20 | Tab differentiation, keyboard, contrast, export | feedback |
 | 26-30 | Validation, audit, dependencies, shortcuts, RBAC | feature-request |
+
+---
+
+# IMPLEMENTED FIXES & ENHANCEMENTS
+
+**Implementation Date:** 2026-01-31
+
+## ✅ COMPLETED: Visual Interactions Feature (New Tab)
+
+**Addresses:** #21 (Preset System), #22 (Batch Processing), #14 (Status Legend)
+
+Added complete **Visual Interactions** tab to manage `visualInteractions` in `page.json` files:
+- Page selector dropdown for multi-page reports
+- N×N matrix view showing source→target interaction relationships
+- List view for large pages (20+ visuals)
+- Auto-switch between views based on visual count
+- Four interaction types: Default, Filter, Highlight, None
+- Bulk actions: Disable All, Enable All, Set All Filter, Set All Highlight
+- Multi-select cells with Ctrl+Click for bulk operations
+- Undo/Redo history
+- Export to CSV/JSON
+- Integration with batch processing
+
+---
+
+## ✅ COMPLETED: Bug Fix 1 - Matrix/List Toggle
+
+**Problem:** Matrix/List view toggle buttons didn't switch the view.
+**Root Cause:** `renderInteractionsView()` didn't toggle container visibility.
+**Fix:** Added `classList.remove('hidden')` / `classList.add('hidden')` for containers.
+**Location:** [app.js](app.js) - `renderInteractionsView()` method
+
+---
+
+## ✅ COMPLETED: Enhancement 2 - Visual Interactions in Batch Processing
+
+**Addresses:** #22 (Batch Processing)
+
+Added Visual Interactions checkbox and dropdown to batch processing manual settings:
+- Checkbox: "Set visual interactions to:"
+- Dropdown: Disabled (None), Filter, Highlight, Reset to Default
+- Integrated with preset selection (disables when preset selected)
+- Updates `getBatchSettings()` and `updateBatchProcessButton()`
+
+**Location:** [index.html](index.html) line 339-348, [app.js](app.js) `batchElements`
+
+---
+
+## ✅ COMPLETED: Bug Fix 3 - Naming Alert Detection
+
+**Problem:** Naming alert didn't appear when visuals lacked user-friendly titles.
+**Root Cause:** `hasName` checked `visualName` which falls back to auto-generated names.
+**Fix:** Created `hasExplicitTitle(json)` method that only checks for explicit user-set titles in `visualContainerObjects.title`.
+
+**Location:** [app.js](app.js) - `hasExplicitTitle()` method, `processJsonFile()`, `buildPagesWithVisuals()`
+
+---
+
+## ✅ COMPLETED: Enhancement 4 - Naming Alerts on All Tabs
+
+**Addresses:** #11 (Cryptic Terminology), #14 (Status Legend)
+
+Added "unnamed visuals" alert banner to Filter Visibility and Layer Order tabs:
+- Collapsible warning showing count of visuals without explicit titles
+- Expandable list of unnamed visuals with visual type and page name
+- Consistent styling across all three tabs
+
+**Location:**
+- [index.html](index.html) lines 83-96 (filter), 202-215 (layer)
+- [app.js](app.js) - `checkUnnamedVisualsForTab()` method
+
+---
+
+## ✅ COMPLETED: Enhancement 5 - Preset Dropdown Descriptions
+
+**Addresses:** #11 (Cryptic Terminology), #20 (Export Purpose Unclear)
+
+Added description panel below batch processing preset dropdown:
+- Shows brief explanation when a preset is selected
+- Hides when selection is cleared
+- Styled with subtle background and left border accent
+
+**Descriptions added for all 10 presets:**
+| Preset | Description |
+|--------|-------------|
+| Hide All Filters | Hides filter panes from viewers. Filters still apply but are not visible. |
+| Show All Filters | Makes all filter panes visible. Viewers can see and interact. |
+| Reset All Filters | Removes isHiddenInViewMode property. Restores Power BI default. |
+| Lock All Layers | Visuals stay in z-order. Clicking won't bring to front. |
+| Unlock All Layers | Visuals can move to front when clicked. |
+| Reset All Layers | Removes keepLayerOrder property. Restores default. |
+| Disable All Interactions | No cross-filtering or highlighting between visuals. |
+| Enable All (Default) | Power BI determines how visuals interact. |
+| Set All to Filter | Clicking filters data in other visuals. |
+| Set All to Highlight | Clicking highlights related data. Non-matching dimmed. |
+
+**Location:**
+- [index.html](index.html) line 325 - `<p id="batch-preset-description">`
+- [styles.css](styles.css) lines 1880-1891 - `.preset-description`
+- [app.js](app.js) - `builtInPresets` with descriptions, preset change event handler
+
+---
+
+## ✅ COMPLETED: Enhancement 6 - Refresh Button
+
+**Addresses:** #15 (No Save Confirmation/Next Steps)
+
+Added "Refresh" button next to folder selector:
+- Hidden by default, appears after folder is selected
+- Click to re-scan folder and reload all tab data
+- Shows loading state ("Refreshing...") during operation
+- Shows success toast when complete
+- Hidden again when showing empty state
+
+**Use Case:** After batch processing, users can click Refresh to see updated values without re-selecting the folder.
+
+**Location:**
+- [index.html](index.html) line 34 - `<button id="refresh-btn">`
+- [styles.css](styles.css) lines 1893-1901 - `#refresh-btn`
+- [app.js](app.js) - `refreshData()` method, `selectFolder()`, `showEmptyState()`
+
+---
+
+## REMAINING HIGH PRIORITY ITEMS
+
+| # | Title | Status |
+|---|-------|--------|
+| 1 | Unsafe array index access | Not started |
+| 2 | Missing JSON.parse error feedback | Not started |
+| 3 | XSS risk via innerHTML | Not started |
+| 4 | Missing permission error differentiation | Not started |
+| 6 | Unbounded directory recursion | ✅ Fixed (MAX_DEPTH = 50 added) |
+| 12 | No folder selection guidance | ✅ Fixed (help text added) |
+| 13 | Empty state message too technical | Not started |
+| 23 | CLI for CI/CD integration | Not started |
