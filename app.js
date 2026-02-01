@@ -1,5 +1,25 @@
 // PBIR Visual Manager - Main Application
 
+// Visual interaction capabilities based on Power BI's official behavior
+const VISUAL_CAPABILITIES = {
+    // Visuals that can ONLY be filtered (no highlighting)
+    'lineChart': { canFilter: true, canHighlight: false, canBeFilterTarget: true, canBeHighlightTarget: false },
+    'scatterChart': { canFilter: true, canHighlight: false, canBeFilterTarget: true, canBeHighlightTarget: false },
+    'map': { canFilter: true, canHighlight: false, canBeFilterTarget: true, canBeHighlightTarget: false },
+    'filledMap': { canFilter: true, canHighlight: false, canBeFilterTarget: true, canBeHighlightTarget: false },
+    'shape': { canFilter: true, canHighlight: false, canBeFilterTarget: true, canBeHighlightTarget: false },
+
+    // Slicers - filter only, cannot be highlighted
+    'slicer': { canFilter: true, canHighlight: false, canBeFilterTarget: false, canBeHighlightTarget: false },
+
+    // Non-data visuals (no interactions)
+    'textbox': { canFilter: false, canHighlight: false, canBeFilterTarget: false, canBeHighlightTarget: false },
+    'image': { canFilter: false, canHighlight: false, canBeFilterTarget: false, canBeHighlightTarget: false },
+
+    // Default for all other visuals (both filter and highlight)
+    'default': { canFilter: true, canHighlight: true, canBeFilterTarget: true, canBeHighlightTarget: true }
+};
+
 class PBIRVisualManager {
     constructor() {
         this.folderHandle = null;
@@ -200,6 +220,7 @@ class PBIRVisualManager {
             unnamedList: document.getElementById('interactions-unnamed-list'),
             legendSection: document.getElementById('interactions-legend-section'),
             presetsSection: document.getElementById('interactions-presets-section'),
+            capabilitiesSection: document.getElementById('interactions-capabilities-section'),
             viewSection: document.getElementById('interactions-view-section'),
             viewMatrixBtn: document.getElementById('interactions-view-matrix-btn'),
             viewListBtn: document.getElementById('interactions-view-list-btn'),
@@ -793,6 +814,61 @@ class PBIRVisualManager {
             return json.singleVisual.visualType;
         }
         return 'unknown';
+    }
+
+    normalizeVisualType(visualType) {
+        // Map Power BI visual type strings to capability keys
+        const typeMap = {
+            'lineChart': 'lineChart',
+            'lineClusteredColumnComboChart': 'lineChart',
+            'lineStackedColumnComboChart': 'lineChart',
+            'scatterChart': 'scatterChart',
+            'map': 'map',
+            'filledMap': 'filledMap',
+            'shape': 'shape',
+            'slicer': 'slicer',
+            'textbox': 'textbox',
+            'image': 'image'
+        };
+        return typeMap[visualType] || 'default';
+    }
+
+    getVisualCapabilities(visualType) {
+        const normalized = this.normalizeVisualType(visualType);
+        return VISUAL_CAPABILITIES[normalized] || VISUAL_CAPABILITIES.default;
+    }
+
+    isValidInteraction(sourceVisualType, targetVisualType, interactionType) {
+        if (interactionType === null || interactionType === 'NoFilter') {
+            return true; // Default and None are always valid
+        }
+
+        const sourceCaps = this.getVisualCapabilities(sourceVisualType);
+        const targetCaps = this.getVisualCapabilities(targetVisualType);
+
+        if (interactionType === 'DataFilter') {
+            return sourceCaps.canFilter && targetCaps.canBeFilterTarget;
+        }
+
+        if (interactionType === 'HighlightFilter') {
+            return sourceCaps.canHighlight && targetCaps.canBeHighlightTarget;
+        }
+
+        return false;
+    }
+
+    getInteractionFallback(sourceType, targetType, requestedType) {
+        // If highlight was requested but not valid, try filter
+        if (requestedType === 'HighlightFilter') {
+            if (this.isValidInteraction(sourceType, targetType, 'DataFilter')) {
+                return 'DataFilter';
+            }
+        }
+        // If filter was requested but not valid, use None
+        if (requestedType === 'DataFilter') {
+            return 'NoFilter';
+        }
+        return 'NoFilter'; // Default fallback
     }
 
     getVisualName(json) {
@@ -1834,6 +1910,7 @@ class PBIRVisualManager {
             this.interactionsElements.namingAlert?.classList.add('hidden');
             this.interactionsElements.legendSection?.classList.add('hidden');
             this.interactionsElements.presetsSection?.classList.add('hidden');
+            this.interactionsElements.capabilitiesSection?.classList.add('hidden');
             this.interactionsElements.viewSection?.classList.add('hidden');
             this.interactionsElements.actionsSection?.classList.add('hidden');
             this.interactionsElements.matrixSection?.classList.add('hidden');
@@ -1883,6 +1960,7 @@ class PBIRVisualManager {
             // namingAlert is shown conditionally by checkUnnamedVisuals
             this.interactionsElements.legendSection?.classList.remove('hidden');
             this.interactionsElements.presetsSection?.classList.remove('hidden');
+            this.interactionsElements.capabilitiesSection?.classList.remove('hidden');
             this.interactionsElements.viewSection?.classList.remove('hidden');
             this.interactionsElements.actionsSection?.classList.remove('hidden');
             this.interactionsElements.matrixSection?.classList.remove('hidden');
@@ -2862,15 +2940,36 @@ class PBIRVisualManager {
                     const cellKey = `${source.visualId}|${target.visualId}`;
                     const isSelected = this.interactionsSelectedCells.has(cellKey);
 
+                    // Determine allowed interaction types based on visual capabilities
+                    const sourceCaps = this.getVisualCapabilities(source.visualType);
+                    const targetCaps = this.getVisualCapabilities(target.visualType);
+
+                    const allowedTypes = [];
+                    if (sourceCaps.canFilter && targetCaps.canBeFilterTarget) {
+                        allowedTypes.push('DataFilter');
+                    }
+                    if (sourceCaps.canHighlight && targetCaps.canBeHighlightTarget) {
+                        allowedTypes.push('HighlightFilter');
+                    }
+                    allowedTypes.push('NoFilter', null); // None and Default always allowed
+
+                    const isRestricted = allowedTypes.length === 2; // Only None and Default available
+
                     // Build tooltip with report default context if applicable
                     let tooltipText = `${this.escapeHtml(sourceDisplayName)} → ${this.escapeHtml(this.getVisualDisplayName(target))}: ${typeDisplay.text}`;
                     if (type === 'Default' && this.reportSettings?.computedDefaultInteractionType) {
                         tooltipText += ` (Report default: ${this.reportSettings.computedDefaultInteractionType})`;
                     }
+                    if (isRestricted) {
+                        tooltipText += ` [Limited: ${source.visualType} ↔ ${target.visualType}]`;
+                    }
 
-                    html += `<td class="interaction-cell ${typeDisplay.class} ${isSelected ? 'selected' : ''}"
+                    html += `<td class="interaction-cell ${typeDisplay.class} ${isSelected ? 'selected' : ''} ${isRestricted ? 'interaction-restricted' : ''}"
                                 data-source="${source.visualId}"
                                 data-target="${target.visualId}"
+                                data-source-type="${this.escapeHtml(source.visualType)}"
+                                data-target-type="${this.escapeHtml(target.visualType)}"
+                                data-allowed-types='${JSON.stringify(allowedTypes)}'
                                 title="${tooltipText}">
                                 <span class="interaction-icon">${typeDisplay.icon}</span>
                             </td>`;
@@ -2976,14 +3075,41 @@ class PBIRVisualManager {
 
         const currentType = this.getInteractionType(page, sourceId, targetId);
 
+        // Get allowed types from element data attribute (if available from matrix cell)
+        let allowedTypes = null;
+        if (element.dataset && element.dataset.allowedTypes) {
+            try {
+                allowedTypes = JSON.parse(element.dataset.allowedTypes);
+            } catch (e) {
+                // If parsing fails, allow all types
+                allowedTypes = null;
+            }
+        }
+
+        // Define interaction options with their properties
+        const options = [
+            { value: null, label: 'Default', icon: '&#9898;', type: null },
+            { value: 'DataFilter', label: 'Filter', icon: '&#128269;', type: 'DataFilter' },
+            { value: 'HighlightFilter', label: 'Highlight', icon: '&#128161;', type: 'HighlightFilter' },
+            { value: 'NoFilter', label: 'None', icon: '&#10060;', type: 'NoFilter' }
+        ];
+
+        // Build selector HTML with conditional disabling
         const selector = document.createElement('div');
         selector.className = 'interaction-type-selector';
-        selector.innerHTML = `
-            <button class="type-option ${currentType === 'Default' ? 'active' : ''}" data-type="null">&#9898; Default</button>
-            <button class="type-option ${currentType === 'DataFilter' ? 'active' : ''}" data-type="DataFilter">&#128269; Filter</button>
-            <button class="type-option ${currentType === 'HighlightFilter' ? 'active' : ''}" data-type="HighlightFilter">&#128161; Highlight</button>
-            <button class="type-option ${currentType === 'NoFilter' ? 'active' : ''}" data-type="NoFilter">&#10060; None</button>
-        `;
+
+        let buttonsHTML = '';
+        for (const opt of options) {
+            const isActive = currentType === opt.type;
+            const isEnabled = !allowedTypes || allowedTypes.includes(opt.type);
+            const disabledAttr = isEnabled ? '' : ' disabled';
+            const disabledClass = isEnabled ? '' : ' disabled';
+            const title = isEnabled ? '' : ` title="Not supported for this visual combination"`;
+
+            buttonsHTML += `<button class="type-option ${isActive ? 'active' : ''}${disabledClass}" data-type="${opt.value}"${disabledAttr}${title}>${opt.icon} ${opt.label}</button>`;
+        }
+
+        selector.innerHTML = buttonsHTML;
 
         // Position selector near element
         const rect = element.getBoundingClientRect();
@@ -2995,7 +3121,7 @@ class PBIRVisualManager {
         document.body.appendChild(selector);
 
         // Bind type selection
-        selector.querySelectorAll('.type-option').forEach(btn => {
+        selector.querySelectorAll('.type-option:not([disabled])').forEach(btn => {
             btn.addEventListener('click', () => {
                 const newType = btn.dataset.type === 'null' ? null : btn.dataset.type;
                 this.setInteractionType(this.currentPageId, sourceId, targetId, newType);
@@ -3097,23 +3223,53 @@ class PBIRVisualManager {
             }
         }
 
+        let skippedCount = 0;
+
         for (const { source, target } of targets) {
             const existingIndex = page.visualInteractions.findIndex(
                 i => i.source === source && i.target === target
             );
             const oldType = existingIndex >= 0 ? page.visualInteractions[existingIndex].type : null;
 
-            if (oldType !== type) {
-                changes.push({ source, target, oldType, newType: type });
+            // Get source and target visual objects for capability checking
+            const sourceVisual = page.visuals.find(v => v.visualId === source);
+            const targetVisual = page.visuals.find(v => v.visualId === target);
 
-                if (type === null) {
+            if (!sourceVisual || !targetVisual) continue;
+
+            // Determine the actual type to apply (with fallback if needed)
+            let typeToApply = type;
+
+            if (type !== null && type !== 'NoFilter') {
+                // Validate if this interaction type is valid for these visual types
+                const isValid = this.isValidInteraction(
+                    sourceVisual.visualType,
+                    targetVisual.visualType,
+                    type
+                );
+
+                if (!isValid) {
+                    // Use fallback type
+                    typeToApply = this.getInteractionFallback(
+                        sourceVisual.visualType,
+                        targetVisual.visualType,
+                        type
+                    );
+                    skippedCount++;
+                }
+            }
+
+            if (oldType !== typeToApply) {
+                changes.push({ source, target, oldType, newType: typeToApply });
+
+                if (typeToApply === null) {
                     if (existingIndex >= 0) {
                         page.visualInteractions.splice(existingIndex, 1);
                     }
                 } else if (existingIndex >= 0) {
-                    page.visualInteractions[existingIndex].type = type;
+                    page.visualInteractions[existingIndex].type = typeToApply;
                 } else {
-                    page.visualInteractions.push({ source, target, type });
+                    page.visualInteractions.push({ source, target, type: typeToApply });
                 }
             }
         }
@@ -3144,7 +3300,14 @@ class PBIRVisualManager {
         this.updateInteractionsSelectionButtons();
 
         const typeText = type === null ? 'default' : type;
-        this.showToast(`Set ${changes.length} interaction(s) to ${typeText}`, 'success');
+        if (skippedCount > 0) {
+            this.showToast(
+                `Set ${changes.length} interaction(s) to ${typeText} (${skippedCount} used fallbacks due to visual restrictions)`,
+                'warning'
+            );
+        } else {
+            this.showToast(`Set ${changes.length} interaction(s) to ${typeText}`, 'success');
+        }
     }
 
     interactionsUndo() {

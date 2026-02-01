@@ -2052,6 +2052,89 @@ body::before {
     background: #ffebee;
 }
 
+/* Restricted interaction cells (limited capabilities) */
+.interaction-cell.interaction-restricted {
+    background: repeating-linear-gradient(
+        45deg,
+        var(--hover-overlay),
+        var(--hover-overlay) 10px,
+        rgba(0,0,0,0.05) 10px,
+        rgba(0,0,0,0.05) 20px
+    );
+    opacity: 0.7;
+}
+
+[data-theme="light"] .interaction-cell.interaction-restricted {
+    background: repeating-linear-gradient(
+        45deg,
+        #f5f5f5,
+        #f5f5f5 10px,
+        #e0e0e0 10px,
+        #e0e0e0 20px
+    );
+}
+
+.interaction-cell.interaction-restricted:hover {
+    opacity: 0.85;
+}
+
+/* Visual type badges */
+.visual-header {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.visual-type-badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.visual-type-slicer {
+    background: #ff9800;
+    color: white;
+}
+
+.visual-type-line {
+    background: #2196f3;
+    color: white;
+}
+
+.visual-type-scatter {
+    background: #9c27b0;
+    color: white;
+}
+
+.visual-type-map {
+    background: #4caf50;
+    color: white;
+}
+
+.visual-type-default {
+    background: #757575;
+    color: white;
+}
+
+/* Interaction tooltip for restricted cells */
+.interaction-tooltip {
+    position: fixed;
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    max-width: 250px;
+    z-index: 10000;
+    pointer-events: none;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
 /* Unnamed visual styling */
 .unnamed-visual {
     font-style: italic;
@@ -2092,6 +2175,18 @@ body::before {
 .interaction-type-selector .type-option.active {
     background: var(--primary-color);
     color: white;
+}
+
+.interaction-type-selector .type-option.disabled,
+.interaction-type-selector .type-option:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    text-decoration: line-through;
+}
+
+.interaction-type-selector .type-option.disabled:hover,
+.interaction-type-selector .type-option:disabled:hover {
+    background: transparent;
 }
 
 /* Interaction List Table */

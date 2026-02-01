@@ -509,20 +509,66 @@
                 <div class="presets-header">
                     <span class="presets-title">Quick Actions</span>
                 </div>
+                <p class="help-text" style="font-size: 0.875rem; color: #666; margin-bottom: 0.75rem;">Apply interaction presets to all visual pairs</p>
                 <div class="presets-grid">
-                    <button class="preset-btn" data-preset="disable-all-interactions" title="Set all interactions to None">
+                    <button class="preset-btn" data-preset="disable-all-interactions" title="No cross-filtering or highlighting between visuals">
                         <span class="preset-icon">&#10060;</span> Disable All
                     </button>
-                    <button class="preset-btn" data-preset="enable-all-interactions" title="Reset all to default behavior">
-                        <span class="preset-icon">&#9898;</span> Enable All
+                    <button class="preset-btn" data-preset="enable-all-interactions" title="Removes explicit settings. Behavior determined by report-level defaults">
+                        <span class="preset-icon">&#9898;</span> Reset to Defaults
                     </button>
-                    <button class="preset-btn" data-preset="filter-all-interactions" title="Set all interactions to Filter">
-                        <span class="preset-icon">&#128269;</span> All Filter
+                    <button class="preset-btn" data-preset="filter-all-interactions" title="Force all interactions to filter (with smart fallbacks for restricted visuals)">
+                        <span class="preset-icon">&#128269;</span> Force All to Filter
                     </button>
-                    <button class="preset-btn" data-preset="highlight-all-interactions" title="Set all interactions to Highlight">
-                        <span class="preset-icon">&#128161;</span> All Highlight
+                    <button class="preset-btn" data-preset="highlight-all-interactions" title="Force all interactions to highlight (with smart fallbacks for restricted visuals)">
+                        <span class="preset-icon">&#128161;</span> Force All to Highlight
                     </button>
                 </div>
+            </section>
+
+            <!-- Visual Capabilities Legend -->
+            <section id="interactions-capabilities-section" class="capabilities-section hidden">
+                <details>
+                    <summary style="cursor: pointer; font-weight: 600; margin-bottom: 0.5rem;">
+                        Visual Interaction Capabilities
+                    </summary>
+                    <div class="capabilities-content" style="margin-top: 0.5rem;">
+                        <table class="capabilities-table" style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                            <thead>
+                                <tr style="background-color: #f5f5f5; border-bottom: 2px solid #ddd;">
+                                    <th style="padding: 0.5rem; text-align: left;">Visual Type</th>
+                                    <th style="padding: 0.5rem; text-align: center;">Filter</th>
+                                    <th style="padding: 0.5rem; text-align: center;">Highlight</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 0.5rem;">Most visuals</td>
+                                    <td style="padding: 0.5rem; text-align: center;">✅</td>
+                                    <td style="padding: 0.5rem; text-align: center;">✅</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee; background-color: #fff8e1;">
+                                    <td style="padding: 0.5rem;"><strong>Slicer</strong></td>
+                                    <td style="padding: 0.5rem; text-align: center;">✅</td>
+                                    <td style="padding: 0.5rem; text-align: center;">❌</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee; background-color: #e3f2fd;">
+                                    <td style="padding: 0.5rem;"><strong>Line/Scatter/Map</strong></td>
+                                    <td style="padding: 0.5rem; text-align: center;">✅</td>
+                                    <td style="padding: 0.5rem; text-align: center;">❌</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid #eee;">
+                                    <td style="padding: 0.5rem;">Textbox/Image</td>
+                                    <td style="padding: 0.5rem; text-align: center;">❌</td>
+                                    <td style="padding: 0.5rem; text-align: center;">❌</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <p style="margin-top: 0.75rem; font-size: 0.8125rem; color: #666; line-height: 1.4;">
+                            <strong>Note:</strong> When using bulk actions, the tool automatically applies fallback modes for restricted visuals.
+                        </p>
+                    </div>
+                </details>
             </section>
 
             <!-- View Toggle -->
@@ -801,10 +847,18 @@
                 <h4>Quick Actions</h4>
                 <ul>
                     <li><strong>Disable All</strong> - Sets all interactions to None (NoFilter). No cross-filtering or highlighting.</li>
-                    <li><strong>Enable All</strong> - Resets all interactions to default Power BI behavior.</li>
-                    <li><strong>All Filter</strong> - Sets all interactions to Filter (DataFilter).</li>
-                    <li><strong>All Highlight</strong> - Sets all interactions to Highlight (HighlightFilter).</li>
+                    <li><strong>Reset to Defaults</strong> - Removes explicit interaction overrides, letting Power BI use report-level default behavior.</li>
+                    <li><strong>Force All to Filter</strong> - Sets all interactions to Filter (DataFilter), with smart fallbacks for visuals that don't support highlighting.</li>
+                    <li><strong>Force All to Highlight</strong> - Sets all interactions to Highlight (HighlightFilter), with smart fallbacks for visuals that don't support highlighting.</li>
                 </ul>
+                <h4>Visual Interaction Capabilities</h4>
+                <p>Not all Power BI visuals support both cross-filtering and cross-highlighting:</p>
+                <ul>
+                    <li><strong>Slicers</strong> - Can only filter other visuals, cannot highlight</li>
+                    <li><strong>Line charts, Scatter charts, Maps</strong> - Can only be cross-filtered, not cross-highlighted</li>
+                    <li><strong>Most other visuals</strong> (Column/Bar charts, Tables, Matrix, etc.) - Support both filtering and highlighting</li>
+                </ul>
+                <p>When you use "Force All to Highlight", the tool automatically uses Filter mode for visuals that don't support highlighting.</p>
 
                 <h3>Batch Processing</h3>
                 <p>Process multiple PBIR reports at once with consistent settings:</p>
