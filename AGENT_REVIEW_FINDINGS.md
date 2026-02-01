@@ -646,7 +646,7 @@ Added "Refresh" button next to folder selector:
 
 ## REMAINING HIGH PRIORITY ITEMS
 
-**Last Updated:** 2026-01-31
+**Last Updated:** 2026-02-01
 
 | # | Title | Status |
 |---|-------|--------|
@@ -655,10 +655,41 @@ Added "Refresh" button next to folder selector:
 | 3 | XSS risk via innerHTML | ✅ Fixed (escapeHtml() applied to data-path attributes) |
 | 4 | Missing permission error differentiation | ✅ Fixed (error type handling at lines 1753-1766) |
 | 6 | Unbounded directory recursion | ✅ Fixed (MAX_DEPTH = 50 added) |
+| 8 | Missing path parsing safety | ✅ Fixed (guards added with filter for empty path parts) |
+| 9 | Deep clone limitations | ✅ Fixed (replaced JSON.parse(JSON.stringify) with structuredClone()) |
+| 10 | Inconsistent optional chaining | ✅ Fixed (standardized to use ?. throughout) |
 | 12 | No folder selection guidance | ✅ Fixed (help text added) |
 | 13 | Empty state message too technical | ✅ Fixed (user-friendly message in empty-state section) |
+| 19 | Color contrast issues | ✅ Fixed (--text-muted improved from #78909c to #9fb3bf for WCAG AA) |
 | 23 | CLI for CI/CD integration | Not started (Feature request) |
 
 ### GitHub Issues Created
 - [Issue #19](https://github.com/JonathanJihwanKim/isHiddenInViewMode/issues/19) - Missing JSON.parse error feedback
 - [Issue #20](https://github.com/JonathanJihwanKim/isHiddenInViewMode/issues/20) - Minor XSS risk in data-path attributes
+
+---
+
+## ✅ COMPLETED: Bug Fixes (2026-02-01)
+
+### Bug #8: Path Parsing Safety
+**Problem:** Path splitting didn't guard against empty arrays
+**Fix:** Added `.filter(p => p.length > 0)` and fallback values
+**Location:** [app.js](app.js) - `readPageDisplayName()`, `processJsonFile()`
+
+### Bug #9: Deep Clone Limitations
+**Problem:** `JSON.parse(JSON.stringify())` fails with circular references
+**Fix:** Replaced with `structuredClone()` (3 instances)
+**Location:** [app.js](app.js) - `filterUndoAll()`, `layerUndoAll()`, `interactionsUndoAll()`
+
+### Bug #10: Inconsistent Optional Chaining
+**Problem:** Mixed use of `&&` checks and `?.` operator
+**Fix:** Standardized to use optional chaining throughout
+**Location:** [app.js](app.js) - `getVisualType()`, `getVisualName()`, `extractFilters()`
+
+### Feedback #19: Color Contrast (WCAG AA)
+**Problem:** Muted text (#78909c) had insufficient contrast on dark backgrounds
+**Fix:**
+- Dark mode: `--text-muted` changed from #78909c to #9fb3bf
+- Dark mode: `--status-default` changed from #78909c to #9fb3bf
+- Light mode: `--status-default` changed from #757575 to #616161
+**Location:** [styles.css](styles.css) - CSS custom properties

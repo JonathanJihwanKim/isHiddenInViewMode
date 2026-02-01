@@ -595,8 +595,8 @@ class PBIRVisualManager {
             const content = await file.text();
             const json = JSON.parse(content);
 
-            const pathParts = folderPath.split('/');
-            const pageId = pathParts[pathParts.length - 1];
+            const pathParts = folderPath.split('/').filter(p => p.length > 0);
+            const pageId = pathParts.length > 0 ? pathParts[pathParts.length - 1] : 'unknown-page';
 
             if (json.displayName) {
                 this.pageDisplayNames.set(pageId, json.displayName);
@@ -631,32 +631,37 @@ class PBIRVisualManager {
             const content = await file.text();
             const json = JSON.parse(content);
 
-            const pathParts = filePath.split('/');
+            const pathParts = filePath.split('/').filter(p => p.length > 0);
 
-            let pageName = '';
+            let pageName = 'Unknown';
             let visualId = '';
 
-            const pagesIndex = pathParts.indexOf('pages');
-            const visualsIndex = pathParts.indexOf('visuals');
-
-            if (pagesIndex !== -1 && pagesIndex + 1 < pathParts.length) {
-                pageName = pathParts[pagesIndex + 1];
-            }
-
-            if (visualsIndex !== -1 && visualsIndex + 1 < pathParts.length) {
-                visualId = pathParts[visualsIndex + 1];
-            }
-
-            if (!pageName && pathParts.length >= 2) {
-                pageName = pathParts.length >= 4 ? pathParts[pathParts.length - 4] : pathParts[0];
-            }
-
-            if (!visualId && pathParts.length >= 2) {
-                visualId = pathParts[pathParts.length - 2];
-            }
-
-            if (!visualId) {
+            // Guard against empty path
+            if (pathParts.length === 0) {
                 visualId = fileHandle.name.replace('.json', '');
+            } else {
+                const pagesIndex = pathParts.indexOf('pages');
+                const visualsIndex = pathParts.indexOf('visuals');
+
+                if (pagesIndex !== -1 && pagesIndex + 1 < pathParts.length) {
+                    pageName = pathParts[pagesIndex + 1];
+                }
+
+                if (visualsIndex !== -1 && visualsIndex + 1 < pathParts.length) {
+                    visualId = pathParts[visualsIndex + 1];
+                }
+
+                if (pageName === 'Unknown' && pathParts.length >= 2) {
+                    pageName = pathParts.length >= 4 ? pathParts[pathParts.length - 4] : pathParts[0];
+                }
+
+                if (!visualId && pathParts.length >= 2) {
+                    visualId = pathParts[pathParts.length - 2];
+                }
+
+                if (!visualId) {
+                    visualId = fileHandle.name.replace('.json', '');
+                }
             }
 
             const pageDisplayName = this.pageDisplayNames.get(pageName) || pageName || 'Unknown';
@@ -687,13 +692,13 @@ class PBIRVisualManager {
     }
 
     getVisualType(json) {
-        if (json.visual && json.visual.visualType) {
+        if (json.visual?.visualType) {
             return json.visual.visualType;
         }
         if (json.visualType) {
             return json.visualType;
         }
-        if (json.singleVisual && json.singleVisual.visualType) {
+        if (json.singleVisual?.visualType) {
             return json.singleVisual.visualType;
         }
         return 'unknown';
@@ -710,7 +715,7 @@ class PBIRVisualManager {
         if (json.name) {
             return json.name;
         }
-        if (json.visual && json.visual.name) {
+        if (json.visual?.name) {
             return json.visual.name;
         }
         return '';
@@ -732,7 +737,7 @@ class PBIRVisualManager {
     extractFilters(json) {
         const filters = [];
 
-        if (json.filterConfig && Array.isArray(json.filterConfig.filters)) {
+        if (Array.isArray(json.filterConfig?.filters)) {
             for (const filter of json.filterConfig.filters) {
                 filters.push({
                     name: filter.name || 'Unnamed Filter',
@@ -1049,7 +1054,7 @@ class PBIRVisualManager {
     }
 
     applyFilterToJson(visual) {
-        if (visual.currentJson.filterConfig && Array.isArray(visual.currentJson.filterConfig.filters)) {
+        if (Array.isArray(visual.currentJson.filterConfig?.filters)) {
             for (let i = 0; i < visual.filters.length; i++) {
                 const filter = visual.filters[i];
                 const jsonFilter = visual.currentJson.filterConfig.filters[i];
@@ -1229,7 +1234,7 @@ class PBIRVisualManager {
         if (this.filterHistory.length === 0) return;
 
         for (const visual of this.visuals) {
-            visual.currentJson = JSON.parse(JSON.stringify(visual.originalJson));
+            visual.currentJson = structuredClone(visual.originalJson);
             visual.filters = this.extractFilters(visual.currentJson);
             visual.keepLayerOrder = this.extractKeepLayerOrder(visual.currentJson);
             visual.filterModified = false;
@@ -1598,7 +1603,7 @@ class PBIRVisualManager {
         if (this.layerHistory.length === 0) return;
 
         for (const visual of this.visuals) {
-            visual.currentJson = JSON.parse(JSON.stringify(visual.originalJson));
+            visual.currentJson = structuredClone(visual.originalJson);
             visual.filters = this.extractFilters(visual.currentJson);
             visual.keepLayerOrder = this.extractKeepLayerOrder(visual.currentJson);
             visual.layerModified = false;
@@ -2497,7 +2502,7 @@ class PBIRVisualManager {
     }
 
     applyFilterToJsonBatch(visual, value) {
-        if (visual.json.filterConfig && Array.isArray(visual.json.filterConfig.filters)) {
+        if (Array.isArray(visual.json.filterConfig?.filters)) {
             for (const filter of visual.json.filterConfig.filters) {
                 if (value === undefined) {
                     delete filter.isHiddenInViewMode;
@@ -3073,7 +3078,7 @@ class PBIRVisualManager {
 
         // Restore all pages to original state
         for (const page of this.pages) {
-            page.currentJson = JSON.parse(JSON.stringify(page.originalJson));
+            page.currentJson = structuredClone(page.originalJson);
             page.visualInteractions = page.currentJson.visualInteractions || [];
             page.modified = false;
         }
