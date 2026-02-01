@@ -290,7 +290,10 @@ class PBIRVisualManager {
 
         // Tab switching (legacy horizontal tabs)
         document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => this.switchTab(btn.dataset.tab));
+            btn.addEventListener('click', () => {
+                this.switchTab(btn.dataset.tab);
+                this.updateSidebarNav(btn.dataset.tab);
+            });
         });
 
         // Modal events
