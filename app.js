@@ -5,6 +5,8 @@ class PBIRVisualManager {
         this.folderHandle = null;
         this.visuals = [];
         this.pageDisplayNames = new Map();
+        this.reportSettings = null;          // Stores parsed report.json settings
+        this.reportFileHandle = null;        // File handle for future enhancements
 
         // Active tab state
         this.activeTab = 'filter-visibility';
@@ -229,7 +231,11 @@ class PBIRVisualManager {
             defaultInteractions: document.getElementById('interactions-default'),
             noFilterCount: document.getElementById('interactions-nofilter'),
             dataFilterCount: document.getElementById('interactions-datafilter'),
-            highlightFilterCount: document.getElementById('interactions-highlightfilter')
+            highlightFilterCount: document.getElementById('interactions-highlightfilter'),
+            // Report-level defaults
+            reportDefaultInfo: document.getElementById('interactions-report-default'),
+            reportDefaultNote: document.getElementById('interactions-report-default-note'),
+            reportDefaultType: document.getElementById('interactions-report-default-type')
         };
     }
 
@@ -531,6 +537,9 @@ class PBIRVisualManager {
             // Pass 1: Collect all page display names and interactions first
             await this.collectPageDisplayNames(this.folderHandle, '');
 
+            // Pass 1.5: Read report-level settings from definition/report.json
+            await this.findAndReadReportSettings(this.folderHandle);
+
             // Pass 2: Process visual.json files
             await this.scanForVisuals(this.folderHandle, '');
 
@@ -626,6 +635,85 @@ class PBIRVisualManager {
                 this.showToast(`Invalid JSON in page.json: ${folderName}`, 'error');
             }
         }
+    }
+
+    async findAndReadReportSettings(rootHandle) {
+        try {
+            // Try to access definition folder
+            const definitionDir = await rootHandle.getDirectoryHandle('definition');
+
+            // Try to access report.json
+            const reportFileHandle = await definitionDir.getFileHandle('report.json');
+
+            // Store handle for potential future use
+            this.reportFileHandle = reportFileHandle;
+
+            // Read and parse the file
+            await this.readReportSettings(reportFileHandle);
+
+            console.log('Report settings loaded:', this.reportSettings);
+        } catch (err) {
+            // This is expected for reports without report.json
+            // Not an error condition
+            this.reportSettings = null;
+            this.reportFileHandle = null;
+            console.log('No report.json found (this is normal for many reports)');
+        }
+    }
+
+    async readReportSettings(fileHandle) {
+        try {
+            const file = await fileHandle.getFile();
+            const content = await file.text();
+            const json = JSON.parse(content);
+
+            // Extract settings object
+            const settings = json.settings || {};
+
+            // Store relevant settings
+            this.reportSettings = {
+                // Core interaction settings
+                defaultFilterActionIsDataFilter: settings.defaultFilterActionIsDataFilter,
+                defaultDrillFilterOtherVisuals: settings.defaultDrillFilterOtherVisuals,
+                allowChangeFilterTypes: settings.allowChangeFilterTypes,
+
+                // Other useful settings for potential future use
+                useEnhancedTooltips: settings.useEnhancedTooltips,
+                exportDataMode: settings.exportDataMode,
+
+                // Store full settings for reference
+                _rawSettings: settings,
+
+                // Compute the effective default interaction type
+                computedDefaultInteractionType: this.computeDefaultInteractionType(settings)
+            };
+
+        } catch (err) {
+            console.warn('Could not parse report.json:', err.message);
+
+            // Show user feedback for JSON parse errors
+            if (err instanceof SyntaxError) {
+                this.showToast('Invalid JSON in report.json. Using default behavior.', 'warning');
+            }
+
+            this.reportSettings = null;
+        }
+    }
+
+    computeDefaultInteractionType(settings) {
+        // Based on Power BI documentation:
+        // defaultFilterActionIsDataFilter determines the default interaction
+
+        if (typeof settings.defaultFilterActionIsDataFilter === 'boolean') {
+            return settings.defaultFilterActionIsDataFilter ? 'DataFilter' : 'HighlightFilter';
+        }
+
+        // Setting not present or invalid - cannot determine
+        return null;
+    }
+
+    getReportDefaultInteractionType() {
+        return this.reportSettings?.computedDefaultInteractionType || null;
     }
 
     async processJsonFile(fileHandle, filePath) {
@@ -2665,6 +2753,24 @@ class PBIRVisualManager {
         this.interactionsElements.noFilterCount.textContent = typeCounts.NoFilter;
         this.interactionsElements.dataFilterCount.textContent = typeCounts.DataFilter;
         this.interactionsElements.highlightFilterCount.textContent = typeCounts.HighlightFilter;
+
+        // Show report-level default info if available
+        if (this.reportSettings && this.reportSettings.computedDefaultInteractionType) {
+            this.interactionsElements.reportDefaultInfo.textContent =
+                `Report Default: ${this.reportSettings.computedDefaultInteractionType}`;
+            this.interactionsElements.reportDefaultInfo.classList.remove('hidden');
+
+            // Update legend note
+            if (this.interactionsElements.reportDefaultNote && this.interactionsElements.reportDefaultType) {
+                this.interactionsElements.reportDefaultType.textContent = this.reportSettings.computedDefaultInteractionType;
+                this.interactionsElements.reportDefaultNote.classList.remove('hidden');
+            }
+        } else {
+            this.interactionsElements.reportDefaultInfo.classList.add('hidden');
+            if (this.interactionsElements.reportDefaultNote) {
+                this.interactionsElements.reportDefaultNote.classList.add('hidden');
+            }
+        }
     }
 
     checkUnnamedVisuals(page) {
@@ -2756,10 +2862,16 @@ class PBIRVisualManager {
                     const cellKey = `${source.visualId}|${target.visualId}`;
                     const isSelected = this.interactionsSelectedCells.has(cellKey);
 
+                    // Build tooltip with report default context if applicable
+                    let tooltipText = `${this.escapeHtml(sourceDisplayName)} → ${this.escapeHtml(this.getVisualDisplayName(target))}: ${typeDisplay.text}`;
+                    if (type === 'Default' && this.reportSettings?.computedDefaultInteractionType) {
+                        tooltipText += ` (Report default: ${this.reportSettings.computedDefaultInteractionType})`;
+                    }
+
                     html += `<td class="interaction-cell ${typeDisplay.class} ${isSelected ? 'selected' : ''}"
                                 data-source="${source.visualId}"
                                 data-target="${target.visualId}"
-                                title="${this.escapeHtml(sourceDisplayName)} → ${this.escapeHtml(this.getVisualDisplayName(target))}: ${typeDisplay.text}">
+                                title="${tooltipText}">
                                 <span class="interaction-icon">${typeDisplay.icon}</span>
                             </td>`;
                 }
@@ -2808,10 +2920,16 @@ class PBIRVisualManager {
             const targetName = targetVisual ? this.getVisualDisplayName(targetVisual) : interaction.target;
             const typeDisplay = this.getInteractionTypeDisplay(interaction.type);
 
+            // Build tooltip with report default context if applicable
+            let badgeTooltip = '';
+            if (interaction.type === 'Default' && this.reportSettings?.computedDefaultInteractionType) {
+                badgeTooltip = ` title="Report default: ${this.reportSettings.computedDefaultInteractionType}"`;
+            }
+
             html += `<tr data-source="${interaction.source}" data-target="${interaction.target}">
                 <td class="${sourceVisual?.hasName ? '' : 'unnamed-visual'}">${this.escapeHtml(sourceName)}</td>
                 <td class="${targetVisual?.hasName ? '' : 'unnamed-visual'}">${this.escapeHtml(targetName)}</td>
-                <td><span class="interaction-type-badge ${typeDisplay.class}">${typeDisplay.icon} ${typeDisplay.text}</span></td>
+                <td><span class="interaction-type-badge ${typeDisplay.class}"${badgeTooltip}>${typeDisplay.icon} ${typeDisplay.text}</span></td>
                 <td>
                     <button class="btn btn-sm btn-action edit-interaction-btn" data-source="${interaction.source}" data-target="${interaction.target}">Edit</button>
                     <button class="btn btn-sm btn-secondary reset-interaction-btn" data-source="${interaction.source}" data-target="${interaction.target}">Reset</button>

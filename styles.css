@@ -3093,3 +3093,27 @@ body.sidebar-collapsed .app-footer {
 .toast.error {
     box-shadow: 0 4px 20px rgba(239, 83, 80, 0.4);
 }
+
+/* ==================== Report-Level Settings Styles ==================== */
+
+.report-default-info {
+    color: #0066cc;
+    font-weight: 500;
+    padding: 4px 8px;
+    background: #e6f2ff;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.legend-note {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.9em;
+    color: #666;
+    line-height: 1.6;
+}
+
+.legend-note strong {
+    color: var(--text-primary);
+}

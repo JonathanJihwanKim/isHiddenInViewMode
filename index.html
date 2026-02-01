@@ -465,6 +465,9 @@
                     <span class="summary-value" id="interactions-highlightfilter">0</span>
                     <span class="summary-label">Highlight</span>
                 </div>
+                <div class="summary-item summary-info">
+                    <span id="interactions-report-default" class="report-default-info hidden"></span>
+                </div>
             </section>
 
             <!-- Visual Naming Alert -->
@@ -491,6 +494,12 @@
                         <span class="interaction-badge interaction-filter">&#128269; Filter</span><span>Selection filters target visual</span>
                         <span class="interaction-badge interaction-highlight">&#128161; Highlight</span><span>Selection highlights in target</span>
                         <span class="interaction-badge interaction-none">&#10060; None</span><span>Selection is ignored</span>
+                    </div>
+                    <div class="legend-note">
+                        <strong>Note:</strong> "Default" means Power BI determines the behavior.
+                        <span id="interactions-report-default-note" class="hidden">
+                            This report's default is <strong id="interactions-report-default-type"></strong>.
+                        </span>
                     </div>
                 </details>
             </section>
