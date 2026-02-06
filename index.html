@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PBIR Visual Manager</title>
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap">
 </head>
 <body>
     <!-- Left Sidebar Navigation -->
@@ -13,25 +15,25 @@
             <img src="Power-BI.png" alt="Power BI" class="sidebar-logo">
             <span class="sidebar-title">PBIR</span>
             <button class="sidebar-collapse-btn" id="sidebar-collapse-btn" title="Collapse sidebar">
-                <span class="collapse-icon">◀</span>
+                <span class="collapse-icon"><span class="material-icons-outlined">chevron_left</span></span>
             </button>
         </div>
 
         <nav class="sidebar-nav">
             <button class="sidebar-nav-btn active" data-tab="filter-visibility" title="Filter Visibility">
-                <span class="nav-icon">👁️</span>
+                <span class="nav-icon"><span class="material-icons-outlined">visibility</span></span>
                 <span class="nav-label">Filter Visibility</span>
             </button>
             <button class="sidebar-nav-btn" data-tab="layer-order" title="Layer Order">
-                <span class="nav-icon">📚</span>
+                <span class="nav-icon"><span class="material-icons-outlined">layers</span></span>
                 <span class="nav-label">Layer Order</span>
             </button>
             <button class="sidebar-nav-btn" data-tab="visual-interactions" title="Visual Interactions">
-                <span class="nav-icon">🔗</span>
+                <span class="nav-icon"><span class="material-icons-outlined">hub</span></span>
                 <span class="nav-label">Visual Interactions</span>
             </button>
             <button class="sidebar-nav-btn" data-tab="batch-processing" title="Batch Processing">
-                <span class="nav-icon">⚡</span>
+                <span class="nav-icon"><span class="material-icons-outlined">bolt</span></span>
                 <span class="nav-label">Batch Processing</span>
             </button>
         </nav>
@@ -60,10 +62,6 @@
         </div>
 
         <div class="sidebar-footer">
-            <button class="theme-toggle-btn" id="theme-toggle" title="Switch to light mode">
-                <span class="theme-icon">☀️</span>
-                <span class="theme-label">Light Mode</span>
-            </button>
         </div>
     </aside>
 
@@ -72,7 +70,7 @@
         <header class="app-header">
             <div class="header-left">
                 <button class="mobile-menu-btn" id="mobile-menu-btn" title="Open menu">
-                    <span>☰</span>
+                    <span class="material-icons-outlined">menu</span>
                 </button>
                 <h1 class="header-title">PBIR Visual Manager</h1>
             </div>
@@ -80,11 +78,8 @@
                 <p class="subtitle">Manage visual properties in Power BI PBIR reports</p>
             </div>
             <div class="header-right">
-                <button id="theme-toggle-header" class="theme-toggle-header" title="Toggle theme">
-                    <span class="theme-icon">☀️</span>
-                </button>
                 <button id="manual-btn" class="manual-btn" title="Documentation">
-                    <img src="manual.png" alt="Manual" class="manual-icon">
+                    <span class="material-icons-outlined">menu_book</span>
                 </button>
             </div>
         </header>
@@ -95,7 +90,7 @@
 
         <section class="folder-section">
             <button id="select-folder-btn" class="btn btn-primary">Select Folder</button>
-            <button id="refresh-btn" class="btn btn-secondary hidden" title="Reload data from folder">&#8635; Refresh</button>
+            <button id="refresh-btn" class="btn btn-secondary hidden" title="Reload data from folder"><span class="material-icons-outlined" style="font-size:16px">refresh</span> Refresh</button>
             <span id="folder-path" class="folder-path">No folder selected</span>
             <p class="folder-help">Select the root folder of your PBIR report (the folder containing 'pages' or 'definition' subdirectories)</p>
         </section>
@@ -109,25 +104,25 @@
 
             <div class="feature-cards">
                 <div class="feature-card" data-feature="filter-visibility">
-                    <div class="feature-icon">👁️</div>
+                    <div class="feature-icon"><span class="material-icons-outlined">visibility</span></div>
                     <h3 class="feature-title">Filter Visibility</h3>
                     <p class="feature-description">Control which filters viewers can see in your reports. Hide sensitive filters while keeping them active.</p>
                 </div>
 
                 <div class="feature-card" data-feature="layer-order">
-                    <div class="feature-icon">📚</div>
+                    <div class="feature-icon"><span class="material-icons-outlined">layers</span></div>
                     <h3 class="feature-title">Layer Order</h3>
                     <p class="feature-description">Manage visual stacking behavior during interactions. Keep visuals in their defined z-order.</p>
                 </div>
 
                 <div class="feature-card" data-feature="visual-interactions">
-                    <div class="feature-icon">🔗</div>
+                    <div class="feature-icon"><span class="material-icons-outlined">hub</span></div>
                     <h3 class="feature-title">Visual Interactions</h3>
                     <p class="feature-description">Define how visuals filter and highlight each other. Create precise cross-filtering experiences.</p>
                 </div>
 
                 <div class="feature-card" data-feature="batch-processing">
-                    <div class="feature-icon">⚡</div>
+                    <div class="feature-icon"><span class="material-icons-outlined">bolt</span></div>
                     <h3 class="feature-title">Batch Processing</h3>
                     <p class="feature-description">Apply settings across multiple reports at once. Save time with bulk operations.</p>
                 </div>
@@ -136,7 +131,7 @@
             <div class="welcome-cta">
                 <p class="cta-text">Get started by selecting your PBIR report folder</p>
                 <button class="btn btn-primary btn-large cta-button" id="welcome-select-folder">
-                    <span class="btn-icon">📂</span> Select Report Folder
+                    <span class="btn-icon"><span class="material-icons-outlined">folder_open</span></span> Select Report Folder
                 </button>
             </div>
 
@@ -201,7 +196,7 @@
             <!-- Visual Naming Alert for Filter Tab -->
             <section id="filter-naming-alert" class="naming-alert-section hidden">
                 <div class="alert-warning">
-                    <span class="alert-icon">&#9888;</span>
+                    <span class="alert-icon"><span class="material-icons-outlined">warning</span></span>
                     <div class="alert-content">
                         <strong><span id="filter-unnamed-count">0</span> visuals have no title</strong>
                         <p>Consider adding titles in Power BI Desktop for easier identification.</p>
@@ -220,13 +215,13 @@
                 </div>
                 <div class="presets-grid">
                     <button class="preset-btn" data-preset="hide-all-filters" title="Set all filters to hidden">
-                        <span class="preset-icon">&#128065;&#65039;</span> Hide All
+                        <span class="preset-icon"><span class="material-icons-outlined">visibility_off</span></span> Hide All
                     </button>
                     <button class="preset-btn" data-preset="show-all-filters" title="Set all filters to visible">
-                        <span class="preset-icon">&#128064;</span> Show All
+                        <span class="preset-icon"><span class="material-icons-outlined">visibility</span></span> Show All
                     </button>
                     <button class="preset-btn" data-preset="reset-all-filters" title="Remove property from all filters">
-                        <span class="preset-icon">&#8635;</span> Reset All
+                        <span class="preset-icon"><span class="material-icons-outlined">restart_alt</span></span> Reset All
                     </button>
                 </div>
                 <div class="custom-presets-container">
@@ -335,7 +330,7 @@
             <!-- Visual Naming Alert for Layer Tab -->
             <section id="layer-naming-alert" class="naming-alert-section hidden">
                 <div class="alert-warning">
-                    <span class="alert-icon">&#9888;</span>
+                    <span class="alert-icon"><span class="material-icons-outlined">warning</span></span>
                     <div class="alert-content">
                         <strong><span id="layer-unnamed-count">0</span> visuals have no title</strong>
                         <p>Consider adding titles in Power BI Desktop for easier identification.</p>
@@ -354,13 +349,13 @@
                 </div>
                 <div class="presets-grid">
                     <button class="preset-btn" data-preset="lock-all-layers" title="Enable keepLayerOrder for all visuals">
-                        <span class="preset-icon">&#128274;</span> Lock All
+                        <span class="preset-icon"><span class="material-icons-outlined">lock</span></span> Lock All
                     </button>
                     <button class="preset-btn" data-preset="unlock-all-layers" title="Disable keepLayerOrder for all visuals">
-                        <span class="preset-icon">&#128275;</span> Unlock All
+                        <span class="preset-icon"><span class="material-icons-outlined">lock_open</span></span> Unlock All
                     </button>
                     <button class="preset-btn" data-preset="reset-all-layers" title="Remove keepLayerOrder property from all visuals">
-                        <span class="preset-icon">&#8635;</span> Reset All
+                        <span class="preset-icon"><span class="material-icons-outlined">restart_alt</span></span> Reset All
                     </button>
                 </div>
                 <div class="custom-presets-container">
@@ -473,7 +468,7 @@
             <!-- Visual Naming Alert -->
             <section id="interactions-naming-alert" class="naming-alert-section hidden">
                 <div class="alert-warning">
-                    <span class="alert-icon">&#9888;</span>
+                    <span class="alert-icon"><span class="material-icons-outlined">warning</span></span>
                     <div class="alert-content">
                         <strong><span id="interactions-unnamed-count">0</span> visuals have no name</strong>
                         <p>Consider adding titles in Power BI Desktop for easier identification.</p>
@@ -490,10 +485,10 @@
                 <details class="legend-details">
                     <summary>Interaction Types</summary>
                     <div class="legend-grid interactions-legend">
-                        <span class="interaction-badge interaction-default">&#9898; Default</span><span>Power BI determines behavior</span>
-                        <span class="interaction-badge interaction-filter">&#128269; Filter</span><span>Selection filters target visual</span>
-                        <span class="interaction-badge interaction-highlight">&#128161; Highlight</span><span>Selection highlights in target</span>
-                        <span class="interaction-badge interaction-none">&#10060; None</span><span>Selection is ignored</span>
+                        <span class="interaction-badge interaction-default"><span class="material-icons-outlined">radio_button_unchecked</span> Default</span><span>Power BI determines behavior</span>
+                        <span class="interaction-badge interaction-filter"><span class="material-icons-outlined">filter_alt</span> Filter</span><span>Selection filters target visual</span>
+                        <span class="interaction-badge interaction-highlight"><span class="material-icons-outlined">highlight</span> Highlight</span><span>Selection highlights in target</span>
+                        <span class="interaction-badge interaction-none"><span class="material-icons-outlined">block</span> None</span><span>Selection is ignored</span>
                     </div>
                     <div class="legend-note">
                         <strong>Note:</strong> "Default" means Power BI determines the behavior.
@@ -512,16 +507,16 @@
                 <p class="help-text" style="font-size: 0.875rem; color: #666; margin-bottom: 0.75rem;">Apply interaction presets to all visual pairs</p>
                 <div class="presets-grid">
                     <button class="preset-btn" data-preset="disable-all-interactions" title="No cross-filtering or highlighting between visuals">
-                        <span class="preset-icon">&#10060;</span> Disable All
+                        <span class="preset-icon"><span class="material-icons-outlined">block</span></span> Disable All
                     </button>
                     <button class="preset-btn" data-preset="enable-all-interactions" title="Removes explicit settings. Behavior determined by report-level defaults">
-                        <span class="preset-icon">&#9898;</span> Reset to Defaults
+                        <span class="preset-icon"><span class="material-icons-outlined">radio_button_unchecked</span></span> Reset to Defaults
                     </button>
                     <button class="preset-btn" data-preset="filter-all-interactions" title="Force all interactions to filter (with smart fallbacks for restricted visuals)">
-                        <span class="preset-icon">&#128269;</span> Force All to Filter
+                        <span class="preset-icon"><span class="material-icons-outlined">filter_alt</span></span> Force All to Filter
                     </button>
                     <button class="preset-btn" data-preset="highlight-all-interactions" title="Force all interactions to highlight (with smart fallbacks for restricted visuals)">
-                        <span class="preset-icon">&#128161;</span> Force All to Highlight
+                        <span class="preset-icon"><span class="material-icons-outlined">highlight</span></span> Force All to Highlight
                     </button>
                 </div>
             </section>
@@ -544,23 +539,23 @@
                             <tbody>
                                 <tr style="border-bottom: 1px solid #eee;">
                                     <td style="padding: 0.5rem;">Most visuals</td>
-                                    <td style="padding: 0.5rem; text-align: center;">✅</td>
-                                    <td style="padding: 0.5rem; text-align: center;">✅</td>
+                                    <td style="padding: 0.5rem; text-align: center;"><span class="material-icons-outlined" style="color:var(--success-color);font-size:18px">check_circle</span></td>
+                                    <td style="padding: 0.5rem; text-align: center;"><span class="material-icons-outlined" style="color:var(--success-color);font-size:18px">check_circle</span></td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid #eee; background-color: #fff8e1;">
                                     <td style="padding: 0.5rem;"><strong>Slicer</strong></td>
-                                    <td style="padding: 0.5rem; text-align: center;">✅</td>
-                                    <td style="padding: 0.5rem; text-align: center;">❌</td>
+                                    <td style="padding: 0.5rem; text-align: center;"><span class="material-icons-outlined" style="color:var(--success-color);font-size:18px">check_circle</span></td>
+                                    <td style="padding: 0.5rem; text-align: center;"><span class="material-icons-outlined" style="color:var(--danger-color);font-size:18px">cancel</span></td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid #eee; background-color: #e3f2fd;">
                                     <td style="padding: 0.5rem;"><strong>Line/Scatter/Map</strong></td>
-                                    <td style="padding: 0.5rem; text-align: center;">✅</td>
-                                    <td style="padding: 0.5rem; text-align: center;">❌</td>
+                                    <td style="padding: 0.5rem; text-align: center;"><span class="material-icons-outlined" style="color:var(--success-color);font-size:18px">check_circle</span></td>
+                                    <td style="padding: 0.5rem; text-align: center;"><span class="material-icons-outlined" style="color:var(--danger-color);font-size:18px">cancel</span></td>
                                 </tr>
                                 <tr style="border-bottom: 1px solid #eee;">
                                     <td style="padding: 0.5rem;">Textbox/Image</td>
-                                    <td style="padding: 0.5rem; text-align: center;">❌</td>
-                                    <td style="padding: 0.5rem; text-align: center;">❌</td>
+                                    <td style="padding: 0.5rem; text-align: center;"><span class="material-icons-outlined" style="color:var(--danger-color);font-size:18px">cancel</span></td>
+                                    <td style="padding: 0.5rem; text-align: center;"><span class="material-icons-outlined" style="color:var(--danger-color);font-size:18px">cancel</span></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -574,8 +569,8 @@
             <!-- View Toggle -->
             <section id="interactions-view-section" class="view-toggle-section hidden">
                 <div class="view-toggle">
-                    <button id="interactions-view-matrix-btn" class="view-btn active" data-view="matrix">&#8862; Matrix</button>
-                    <button id="interactions-view-list-btn" class="view-btn" data-view="list">&#9776; List</button>
+                    <button id="interactions-view-matrix-btn" class="view-btn active" data-view="matrix"><span class="material-icons-outlined">grid_view</span> Matrix</button>
+                    <button id="interactions-view-list-btn" class="view-btn" data-view="list"><span class="material-icons-outlined">view_list</span> List</button>
                     <span id="interactions-view-hint" class="view-hint"></span>
                 </div>
             </section>
@@ -770,7 +765,7 @@
         <div class="modal-content modal-sm">
             <div class="modal-header">
                 <h2>Save Preset</h2>
-                <button id="close-preset-modal-btn" class="close-btn">&times;</button>
+                <button id="close-preset-modal-btn" class="close-btn"><span class="material-icons-outlined">close</span></button>
             </div>
             <div class="modal-body">
                 <div class="form-group">
@@ -791,7 +786,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Documentation</h2>
-                <button id="close-modal-btn" class="close-btn">&times;</button>
+                <button id="close-modal-btn" class="close-btn"><span class="material-icons-outlined">close</span></button>
             </div>
             <div class="modal-body">
                 <h3>What is PBIR Visual Manager?</h3>

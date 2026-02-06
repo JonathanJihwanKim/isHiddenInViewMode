@@ -213,38 +213,25 @@ git worktree add ../pbir-task-2 -b task/2-ux-tooltips-export-clarity
 
 ---
 
-### T3: Visual — Tab Differentiation with Icons/Accents
+### T3: ~~Visual — Tab Differentiation with Icons/Accents~~ **SUPERSEDED**
 
-**Addresses:** Finding #17 (Tab content not differentiated)
-**Agent:** UI/Presentation
-**Files:** `styles.css`, `index.html`
-**Serialization:** **Parallel** (no app.js changes)
-**Priority:** Nice-to-Have
+**Status:** Superseded by Material Icons + Mature Van Gogh 2026 design overhaul (2026-02-06)
 
-#### Description
+All T3 acceptance criteria have been addressed by the comprehensive design update:
+- [x] Each tab has a unique color accent via `--tab-filter-accent`, `--tab-layer-accent`, `--tab-interactions-accent`, `--tab-batch-accent`
+- [x] Tab icons replaced with distinct Google Material Icons Outlined (visibility, layers, hub, bolt)
+- [x] Active tab uses `color-mix()` for per-tab accent backgrounds and colored left border
+- [x] Changes span `styles.css`, `index.html`, and `app.js` (icon replacements)
+- [x] Dark mode removed — single light theme with Van Gogh canvas aesthetic
 
-Filter Visibility and Layer Order tabs look nearly identical. Users may not realize which tab they're on.
-
-#### Acceptance Criteria
-
-- [ ] Each tab has a unique color accent (subtle, not overwhelming)
-- [ ] Tab icons/emojis are visually distinct
-- [ ] Active tab has clear visual indicator beyond the current highlight
-- [ ] Changes are CSS/HTML only — no app.js modifications
-- [ ] Works in both dark and light themes
-
-#### Recommended Approach
-
-- Add CSS custom properties per tab: `--tab-filter-accent`, `--tab-layer-accent`, `--tab-interactions-accent`, `--tab-batch-accent`
-- Use the existing sidebar nav items in `index.html` — add a `data-tab-color` attribute or specific class
-- Add a subtle left border or background tint to the active tab's content area
-- Consider adding a brief tab description below the tab title when active
-
-#### Worktree
-
-```bash
-git worktree add ../pbir-task-3 -b task/3-visual-tab-differentiation
-```
+Additional work delivered beyond T3 scope:
+- All 72 emoji/Unicode/HTML-entity icons replaced with Material Icons Outlined
+- Playfair Display serif font for headings
+- Canvas grain texture (SVG feTurbulence, 5% opacity)
+- Enhanced atmospheric swirl backgrounds (5 radial gradients)
+- Starry night accents in deep-blue sidebar
+- Impasto gradient borders (4px, 5-color)
+- Enhanced button hover glow effects
 
 ---
 
@@ -560,7 +547,7 @@ Phase A: Bug Fixes (Must-Have)
 
 Phase B: Core UX Improvements (Should-Have)
   T2: Disabled button tooltips + export clarity           [Serial, S]
-  T3: Tab differentiation with icons/accents              [Parallel, S] ← can run alongside T2
+  T3: Tab differentiation with icons/accents              [SUPERSEDED] ← completed by Material Icons + Van Gogh 2026 overhaul
   T4: Keyboard shortcuts + navigation hints               [Serial, M]
 
 Phase C: Major Features (Should-Have)
@@ -584,7 +571,7 @@ SERIAL (app.js) — must execute one at a time, merge before next:
 T1 → T2 → T4 → T5 → T6 → T7 → T8 → T10 → T11
 
 PARALLEL (no app.js) — can run anytime:
-T3 (styles.css + index.html only)
+T3 [SUPERSEDED] — completed by Material Icons + Van Gogh 2026 overhaul
 T9 (new files only)
 ```
 
@@ -621,6 +608,27 @@ For each task, the executing agent follows this protocol:
    git branch -d task/N-short-description
 9. Update this manifest: set task status to "Completed" with date
 ```
+
+### Practical Setup: Parallel Tasks with VS Code + Claude Code
+
+To run parallel tasks simultaneously using separate Claude Code sessions:
+
+**Serial task (in main VS Code window):**
+1. Tell Claude Code: *"Start Task T1 from AGENT_REVIEW_FINDINGS.md"*
+2. Claude creates the worktree: `git worktree add ../pbir-task-1 -b task/1-history-validation`
+3. Claude works in the worktree, commits, merges back to main, and cleans up
+
+**Parallel task (in a second VS Code window):**
+1. Open the worktree folder (e.g., `../pbir-task-9`) in a new VS Code window
+2. Start a new Claude Code session in that window
+3. Tell it: *"Implement Task T9 — the worktree is already set up"*
+4. When done, switch back to the main window to merge
+
+**Rules:**
+- Only tasks marked `[Parallel]` can run in a second window alongside a serial task
+- Currently parallel-safe: T9 (new files only). T3 was parallel-safe but is now SUPERSEDED.
+- Serial tasks (T1, T2, T4-T8, T10-T11) must wait for the current serial task to merge before starting
+- Each VS Code window has its own independent Claude Code context
 
 ### Conflict Resolution Protocol
 

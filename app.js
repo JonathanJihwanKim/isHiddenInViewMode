@@ -76,7 +76,7 @@ class PBIRVisualManager {
         this.checkBrowserSupport();
         this.bindEvents();
         this.renderCustomPresets();
-        this.initTheme();
+        this.initUI();
     }
 
     initElements() {
@@ -309,12 +309,6 @@ class PBIRVisualManager {
             });
         });
 
-        // Theme toggle from header
-        const themeToggleHeader = document.getElementById('theme-toggle-header');
-        if (themeToggleHeader) {
-            themeToggleHeader.addEventListener('click', () => this.toggleTheme());
-        }
-
         // Tab switching (legacy horizontal tabs)
         document.querySelectorAll('.tab-btn').forEach(btn => {
             btn.addEventListener('click', () => {
@@ -527,7 +521,7 @@ class PBIRVisualManager {
 
         this.refreshBtn.disabled = true;
         const originalText = this.refreshBtn.innerHTML;
-        this.refreshBtn.innerHTML = '&#8635; Refreshing...';
+        this.refreshBtn.innerHTML = '<span class="material-icons-outlined" style="font-size:16px">refresh</span> Refreshing...';
 
         try {
             await this.scanVisuals();
@@ -1024,11 +1018,11 @@ class PBIRVisualManager {
 
     getInteractionTypeDisplay(type) {
         switch (type) {
-            case 'Default': return { text: 'Default', class: 'interaction-default', icon: '&#9898;' };
-            case 'DataFilter': return { text: 'Filter', class: 'interaction-filter', icon: '&#128269;' };
-            case 'HighlightFilter': return { text: 'Highlight', class: 'interaction-highlight', icon: '&#128161;' };
-            case 'NoFilter': return { text: 'None', class: 'interaction-none', icon: '&#10060;' };
-            default: return { text: type, class: 'interaction-default', icon: '&#9898;' };
+            case 'Default': return { text: 'Default', class: 'interaction-default', icon: '<span class="material-icons-outlined">radio_button_unchecked</span>' };
+            case 'DataFilter': return { text: 'Filter', class: 'interaction-filter', icon: '<span class="material-icons-outlined">filter_alt</span>' };
+            case 'HighlightFilter': return { text: 'Highlight', class: 'interaction-highlight', icon: '<span class="material-icons-outlined">highlight</span>' };
+            case 'NoFilter': return { text: 'None', class: 'interaction-none', icon: '<span class="material-icons-outlined">block</span>' };
+            default: return { text: type, class: 'interaction-default', icon: '<span class="material-icons-outlined">radio_button_unchecked</span>' };
         }
     }
 
@@ -1087,7 +1081,7 @@ class PBIRVisualManager {
                 </td>
                 <td class="col-expand">
                     ${visual.filters.length > 0 ?
-                        `<button class="expand-btn" data-path="${this.escapeHtml(visual.path)}">&#9654;</button>` :
+                        `<button class="expand-btn" data-path="${this.escapeHtml(visual.path)}"><span class="material-icons-outlined">chevron_right</span></button>` :
                         ''}
                 </td>
                 <td class="col-page" title="${this.escapeHtml(visual.path)}">${this.escapeHtml(visual.pageDisplayName)}</td>
@@ -2358,13 +2352,13 @@ class PBIRVisualManager {
 
             return `
                 <div class="batch-queue-item">
-                    <span class="batch-queue-icon">&#128193;</span>
+                    <span class="batch-queue-icon"><span class="material-icons-outlined">folder</span></span>
                     <div class="batch-queue-info">
                         <div class="batch-queue-name">${this.escapeHtml(report.name)}</div>
                         <div class="batch-queue-details">${report.visualCount} visuals</div>
                     </div>
                     <span class="batch-queue-status ${statusClass}">${statusText}</span>
-                    <button class="batch-queue-remove" data-index="${index}" title="Remove">&times;</button>
+                    <button class="batch-queue-remove" data-index="${index}" title="Remove"><span class="material-icons-outlined" style="font-size:18px">close</span></button>
                 </div>
             `;
         }).join('');
@@ -2730,7 +2724,7 @@ class PBIRVisualManager {
     }
 
     addBatchResult(name, status, count, error = null) {
-        const icon = status === 'done' ? '&#9989;' : '&#10060;';
+        const icon = status === 'done' ? '<span class="material-icons-outlined" style="color:var(--success-color)">check_circle</span>' : '<span class="material-icons-outlined" style="color:var(--danger-color)">cancel</span>';
         const detail = status === 'done' ? `${count} visuals updated` : error;
 
         const resultHtml = `
@@ -3088,10 +3082,10 @@ class PBIRVisualManager {
 
         // Define interaction options with their properties
         const options = [
-            { value: null, label: 'Default', icon: '&#9898;', type: null },
-            { value: 'DataFilter', label: 'Filter', icon: '&#128269;', type: 'DataFilter' },
-            { value: 'HighlightFilter', label: 'Highlight', icon: '&#128161;', type: 'HighlightFilter' },
-            { value: 'NoFilter', label: 'None', icon: '&#10060;', type: 'NoFilter' }
+            { value: null, label: 'Default', icon: '<span class="material-icons-outlined">radio_button_unchecked</span>', type: null },
+            { value: 'DataFilter', label: 'Filter', icon: '<span class="material-icons-outlined">filter_alt</span>', type: 'DataFilter' },
+            { value: 'HighlightFilter', label: 'Highlight', icon: '<span class="material-icons-outlined">highlight</span>', type: 'HighlightFilter' },
+            { value: 'NoFilter', label: 'None', icon: '<span class="material-icons-outlined">block</span>', type: 'NoFilter' }
         ];
 
         // Build selector HTML with conditional disabling
@@ -3543,6 +3537,9 @@ class PBIRVisualManager {
         const isCollapsed = sidebar.classList.toggle('collapsed');
         document.body.classList.toggle('sidebar-collapsed', isCollapsed);
         localStorage.setItem('pbir-sidebar-collapsed', isCollapsed);
+        if (this.sidebarCollapseBtn) {
+            this.sidebarCollapseBtn.title = isCollapsed ? 'Expand sidebar' : 'Collapse sidebar';
+        }
     }
 
     toggleMobileSidebar() {
@@ -3566,20 +3563,20 @@ class PBIRVisualManager {
     updateQuickActions(tabId) {
         const quickActionsMap = {
             'filter-visibility': [
-                { icon: '👁️‍🗨️', label: 'Hide All', preset: 'hide-all-filters' },
-                { icon: '👁️', label: 'Show All', preset: 'show-all-filters' },
-                { icon: '↩️', label: 'Reset All', preset: 'reset-all-filters' }
+                { icon: '<span class="material-icons-outlined">visibility_off</span>', label: 'Hide All', preset: 'hide-all-filters' },
+                { icon: '<span class="material-icons-outlined">visibility</span>', label: 'Show All', preset: 'show-all-filters' },
+                { icon: '<span class="material-icons-outlined">restart_alt</span>', label: 'Reset All', preset: 'reset-all-filters' }
             ],
             'layer-order': [
-                { icon: '🔒', label: 'Lock All', preset: 'lock-all-layers' },
-                { icon: '🔓', label: 'Unlock All', preset: 'unlock-all-layers' },
-                { icon: '↩️', label: 'Reset All', preset: 'reset-all-layers' }
+                { icon: '<span class="material-icons-outlined">lock</span>', label: 'Lock All', preset: 'lock-all-layers' },
+                { icon: '<span class="material-icons-outlined">lock_open</span>', label: 'Unlock All', preset: 'unlock-all-layers' },
+                { icon: '<span class="material-icons-outlined">restart_alt</span>', label: 'Reset All', preset: 'reset-all-layers' }
             ],
             'visual-interactions': [
-                { icon: '🚫', label: 'Disable All', preset: 'disable-all-interactions' },
-                { icon: '✅', label: 'Enable All', preset: 'enable-all-interactions' },
-                { icon: '🔍', label: 'All Filter', preset: 'filter-all-interactions' },
-                { icon: '💡', label: 'All Highlight', preset: 'highlight-all-interactions' }
+                { icon: '<span class="material-icons-outlined">block</span>', label: 'Disable All', preset: 'disable-all-interactions' },
+                { icon: '<span class="material-icons-outlined">radio_button_unchecked</span>', label: 'Enable All', preset: 'enable-all-interactions' },
+                { icon: '<span class="material-icons-outlined">filter_alt</span>', label: 'All Filter', preset: 'filter-all-interactions' },
+                { icon: '<span class="material-icons-outlined">highlight</span>', label: 'All Highlight', preset: 'highlight-all-interactions' }
             ],
             'batch-processing': []
         };
@@ -3632,7 +3629,7 @@ class PBIRVisualManager {
             const visualCount = visuals.length;
             treeHtml += `
                 <div class="tree-node tree-page" data-page="${pageName}">
-                    <span class="tree-node-icon">📄</span>
+                    <span class="tree-node-icon"><span class="material-icons-outlined">article</span></span>
                     ${pageName}
                     <span class="tree-count">(${visualCount})</span>
                 </div>
@@ -3663,59 +3660,21 @@ class PBIRVisualManager {
         }
     }
 
-    // ==================== Theme Management ====================
+    // ==================== UI Initialization ====================
 
-    initTheme() {
-        // Get saved theme or default to dark
-        const savedTheme = localStorage.getItem('pbir-theme') || 'dark';
-        this.setTheme(savedTheme);
-
+    initUI() {
         // Restore sidebar collapsed state
         const sidebarCollapsed = localStorage.getItem('pbir-sidebar-collapsed') === 'true';
         if (sidebarCollapsed && this.leftSidebar) {
             this.leftSidebar.classList.add('collapsed');
             document.body.classList.add('sidebar-collapsed');
-        }
-
-        // Set up sidebar theme toggle button
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            themeToggle.addEventListener('click', () => this.toggleTheme());
+            if (this.sidebarCollapseBtn) {
+                this.sidebarCollapseBtn.title = 'Expand sidebar';
+            }
         }
 
         // Initialize quick actions for default tab
         this.updateQuickActions(this.activeTab);
-    }
-
-    setTheme(theme) {
-        this.currentTheme = theme;
-        document.documentElement.setAttribute('data-theme', theme);
-        localStorage.setItem('pbir-theme', theme);
-
-        // Update all theme toggle buttons
-        const themeToggles = [
-            document.getElementById('theme-toggle'),
-            document.getElementById('theme-toggle-header')
-        ];
-
-        themeToggles.forEach(toggle => {
-            if (toggle) {
-                const icon = toggle.querySelector('.theme-icon');
-                if (icon) {
-                    icon.textContent = theme === 'dark' ? '☀️' : '🌙';
-                }
-                const label = toggle.querySelector('.theme-label');
-                if (label) {
-                    label.textContent = theme === 'dark' ? 'Light Mode' : 'Dark Mode';
-                }
-                toggle.title = theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode';
-            }
-        });
-    }
-
-    toggleTheme() {
-        const newTheme = this.currentTheme === 'dark' ? 'light' : 'dark';
-        this.setTheme(newTheme);
     }
 }
 
