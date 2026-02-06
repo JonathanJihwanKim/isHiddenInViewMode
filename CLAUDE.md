@@ -108,4 +108,19 @@ ReportFolder/
 
 ## Known Issues & Review Findings
 
-See [AGENT_REVIEW_FINDINGS.md](AGENT_REVIEW_FINDINGS.md) for 30 documented findings from code review. Most critical/high priority bugs have been fixed as of 2026-02-01.
+See [AGENT_REVIEW_FINDINGS.md](AGENT_REVIEW_FINDINGS.md) for the review & improvement manifest. This document serves as both the findings record and the execution task manifest.
+
+- **Original review:** 30 findings (2026-01-27), 16 fixed, 14 remaining
+- **Current format:** Task-oriented manifest with 11 executable tasks (T1–T11)
+
+## Agent-Driven Improvement Workflow
+
+This project uses a repeatable, on-demand workflow for improvements:
+
+1. **Trigger a review cycle:** Say *"Run the review and improvement cycle for PBIR Visual Manager"* — the orchestrator researches trends, audits the codebase, and updates `AGENT_REVIEW_FINDINGS.md`
+2. **Execute tasks:** Say *"Start Task N from AGENT_REVIEW_FINDINGS.md"* — each task uses a git worktree for isolation
+3. **Resolve conflicts:** Say *"Resolve merge conflict for Task N"* if a merge fails
+
+**Key constraint:** Tasks modifying `app.js` must be serialized (one at a time, merge before starting next). Tasks touching only `styles.css`, `index.html`, or new files can run in parallel.
+
+See [AGENT_REVIEW_FINDINGS.md](AGENT_REVIEW_FINDINGS.md) for full details on sub-agent definitions, task registry, and execution protocols.
