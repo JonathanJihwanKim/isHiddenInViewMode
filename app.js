@@ -737,6 +737,9 @@ class PBIRVisualManager {
             const content = await file.text();
             const json = JSON.parse(content);
 
+            // visualGroup containers don't have visual properties (filters, keepLayerOrder)
+            if (json.visualGroup) return;
+
             const pathParts = filePath.split('/').filter(p => p.length > 0);
 
             let pageName = 'Unknown';
@@ -2649,6 +2652,9 @@ class PBIRVisualManager {
                     const file = await entry.getFile();
                     const content = await file.text();
                     const json = JSON.parse(content);
+
+                    // visualGroup containers don't have visual properties
+                    if (json.visualGroup) continue;
 
                     visuals.push({
                         path: entryPath,
