@@ -200,6 +200,17 @@ Found a bug or have a feature idea? Please [open an issue](https://github.com/Jo
 
 ---
 
+## Support This Project
+
+If this tool saves you time, consider supporting its development:
+
+- [Sponsor on GitHub](https://github.com/sponsors/JonathanJihwanKim)
+- [Buy Me a Coffee](https://buymeacoffee.com/jihwankim)
+
+Your support helps keep this tool free and actively maintained.
+
+---
+
 ## License
 
 MIT License — Free to use, modify, and distribute.
