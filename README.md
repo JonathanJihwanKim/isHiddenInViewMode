@@ -5,7 +5,7 @@
 ![Visitors](https://visitor-badge.laobi.icu/badge?page_id=JonathanJihwanKim.isHiddenInViewMode)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-**[Launch the App](https://jonathanjihwankim.github.io/isHiddenInViewMode/)**
+**[Launch the App](https://jonathanjihwankim.github.io/isHiddenInViewMode/)** | **[Support Development](https://github.com/sponsors/JonathanJihwanKim)**
 
 Free, browser-based tool to bulk-manage visual properties in Power BI PBIR reports — no installation required.
 
@@ -200,16 +200,25 @@ Found a bug or have a feature idea? Please [open an issue](https://github.com/Jo
 
 ---
 
-## Support This Project
+## Keep This Tool Free & Updated
 
-If this tool saves you time, consider supporting its development:
+This tool replaces ~30 minutes of manual JSON editing per report. Your support funds continuous updates as Microsoft ships PBIR/PBIP changes.
 
-- [Sponsor on GitHub](https://github.com/sponsors/JonathanJihwanKim)
-- [Buy Me a Coffee](https://buymeacoffee.com/jihwankim)
+**Why sponsor?**
+- Ensures ongoing compatibility with Power BI Desktop updates
+- Funds new features requested by the community
+- Keeps the tool free for everyone
 
-Your support helps keep this tool free and actively maintained.
+**Support options:**
+- [Sponsor on GitHub](https://github.com/sponsors/JonathanJihwanKim) — monthly or one-time
+- [Buy Me a Coffee](https://buymeacoffee.com/jihwankim) — quick one-time support
+- ⭐ **Star this repo** — free, helps others discover it
 
 ---
+
+## Also by Jihwan Kim
+
+- **[PBIP Impact Analyzer](https://github.com/JonathanJihwanKim/pbip-impact-analyzer)** — Safely refactor Power BI semantic models with dependency analysis and lineage visualization
 
 ## License
 
@@ -219,4 +228,4 @@ MIT License — Free to use, modify, and distribute.
 
 ## Sponsors
 
-Interested in sponsoring this project? [Contact me on LinkedIn](https://www.linkedin.com/in/jihwankim1975/)
+Interested in corporate sponsorship? [Contact me on LinkedIn](https://www.linkedin.com/in/jihwankim1975/) — ideal for Power BI consulting firms and enterprise teams.

@@ -12,6 +12,80 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined">
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&display=swap">
+<style>
+    .sponsor-toast {
+        position: fixed;
+        bottom: 24px;
+        right: 24px;
+        z-index: 10000;
+        max-width: 420px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-left: 4px solid #0078d4;
+        border-radius: 8px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        padding: 16px 40px 16px 16px;
+        animation: sponsorSlideIn 0.4s ease-out;
+        font-family: inherit;
+    }
+    .sponsor-toast.hidden { display: none; }
+    .sponsor-toast-text {
+        display: block;
+        font-size: 0.9rem;
+        color: #333;
+        margin-bottom: 12px;
+        line-height: 1.5;
+    }
+    .sponsor-toast-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .btn-sponsor-toast {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        background: #0078d4;
+        color: #fff !important;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        transition: background 0.2s;
+    }
+    .btn-sponsor-toast:hover { background: #106ebe; }
+    .btn-sponsor-toast-alt {
+        display: inline-flex;
+        align-items: center;
+        padding: 6px 14px;
+        background: transparent;
+        color: #0078d4 !important;
+        border: 1px solid #0078d4;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        transition: all 0.2s;
+    }
+    .btn-sponsor-toast-alt:hover { background: #f0f6ff; }
+    .sponsor-toast-close {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        background: none;
+        border: none;
+        font-size: 1.25rem;
+        color: #666;
+        cursor: pointer;
+        padding: 4px 8px;
+        line-height: 1;
+    }
+    .sponsor-toast-close:hover { color: #333; }
+    @keyframes sponsorSlideIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
 </head>
 <body>
     <!-- Left Sidebar Navigation -->
@@ -727,9 +801,9 @@
 
     <!-- Sponsor Sidebar -->
     <aside class="sponsor-sidebar">
-        <div class="sponsor-header">Support This Project</div>
+        <div class="sponsor-header">Keep This Tool Free</div>
         <div class="sponsor-placeholder">
-            <div class="sponsor-empty">Supported by the community</div>
+            <div class="sponsor-empty">Your support funds updates as Microsoft ships PBIR changes</div>
             <a href="https://github.com/sponsors/JonathanJihwanKim" target="_blank" class="btn btn-sponsor">Sponsor on GitHub</a>
             <a href="https://buymeacoffee.com/jihwankim" target="_blank" class="btn btn-sponsor" style="margin-top:8px">Buy Me a Coffee</a>
         </div>
@@ -752,6 +826,10 @@
             <a href="https://github.com/JonathanJihwanKim/isHiddenInViewMode/blob/main/LICENSE" target="_blank">MIT License</a>
             <span class="footer-separator">|</span>
             <a href="https://github.com/JonathanJihwanKim/isHiddenInViewMode" target="_blank">View on GitHub</a>
+            <span class="footer-separator">|</span>
+            <a href="https://jonathanjihwankim.github.io/pbip-impact-analyzer/" target="_blank">PBIP Impact Analyzer</a>
+            <span class="footer-separator">|</span>
+            <a href="https://github.com/sponsors/JonathanJihwanKim" target="_blank">Support this tool</a>
         </div>
         <div class="footer-right">
             <a href="https://www.linkedin.com/in/jihwankim1975/" target="_blank" class="linkedin-link">
@@ -980,6 +1058,45 @@
         </div>
     </div>
 
+    <!-- Sponsor Toast -->
+    <div id="sponsor-toast" class="sponsor-toast hidden">
+        <div class="sponsor-toast-content">
+            <span class="sponsor-toast-text">This tool just saved you time. If it's useful, consider supporting development.</span>
+            <div class="sponsor-toast-actions">
+                <a href="https://buymeacoffee.com/jihwankim" target="_blank" class="btn btn-sponsor-toast">Buy me a coffee</a>
+                <a href="https://github.com/sponsors/JonathanJihwanKim" target="_blank" class="btn btn-sponsor-toast-alt">Sponsor on GitHub</a>
+            </div>
+            <button id="sponsor-toast-close" class="sponsor-toast-close" title="Dismiss">&times;</button>
+        </div>
+    </div>
+
     <script src="app.js"></script>
+    <script>
+    (function() {
+        const STORAGE_KEY = 'pbir-sponsor-toast-shown';
+        function showSponsorToast() {
+            if (sessionStorage.getItem(STORAGE_KEY)) return;
+            const toast = document.getElementById('sponsor-toast');
+            if (!toast) return;
+            toast.classList.remove('hidden');
+            sessionStorage.setItem(STORAGE_KEY, '1');
+            document.getElementById('sponsor-toast-close').addEventListener('click', function() {
+                toast.classList.add('hidden');
+            });
+            setTimeout(function() { toast.classList.add('hidden'); }, 30000);
+        }
+        // Hook into save button clicks - show toast after a short delay
+        const observer = new MutationObserver(function() {
+            const toastEl = document.getElementById('toast');
+            if (toastEl && !toastEl.classList.contains('hidden') && toastEl.textContent.toLowerCase().includes('saved')) {
+                setTimeout(showSponsorToast, 2000);
+            }
+        });
+        const toastEl = document.getElementById('toast');
+        if (toastEl) {
+            observer.observe(toastEl, { attributes: true, childList: true, characterData: true });
+        }
+    })();
+    </script>
 </body>
 </html>
