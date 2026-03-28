@@ -229,3 +229,14 @@ MIT License — Free to use, modify, and distribute.
 ## Sponsors
 
 Interested in corporate sponsorship? [Contact me on LinkedIn](https://www.linkedin.com/in/jihwankim1975/) — ideal for Power BI consulting firms and enterprise teams.
+
+---
+
+### Who is this for?
+
+- **Enterprise BI architects** managing report governance across large Power BI estates
+- **Power BI developers** bulk-editing visual properties in PBIR format reports
+- **Report designers** controlling filter visibility, layer order, and visual interactions at scale
+- **Data governance teams** enforcing visual standards across multiple reports
+
+**Built for:** Power BI | Microsoft Fabric | PBIR | TMDL | Report Management | Data Visualization | Governance | Developer Tools
